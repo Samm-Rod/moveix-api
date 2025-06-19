@@ -1,0 +1,58 @@
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Arquivos de dependências temporários
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Arquivos de log e cache
+*.log
+*.sqlite3
+*.db
+*.pot
+*.pyc
+*.pyd
+*.pyo
+*.pyd
+*.cache
+*.pytest_cache/
+.cache/
+coverage/
+
+# VSCode configs
+.vscode/
+
+# Configs do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de build Docker
+*.tar
+*.img
+*.bak
+
+# Arquivos do banco de dados (se for usar SQLite local por exemplo)
+*.db
+
+# Pasta de dados do volume do PostgreSQL (se for usar bind-mounts)
+postgres_data/
+
+# Arquivos de ambiente
+.env
+.env.*
+
+# Arquivos gerados pelo Docker Compose (caso use override)
+docker-compose.override.yml
+
+# Pytest e testes
+htmlcov/
+.tox/
+.pytest_cache/
+test-results/
+
+# Arquivos do Pycharm/IDEA
+.idea/
