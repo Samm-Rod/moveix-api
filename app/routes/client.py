@@ -12,7 +12,7 @@ from app.schemas.client import (
 )
 
 
-router = APIRouter(prefix='/clients',tags=['Clients'])
+router = APIRouter()
 
 @router.post('/', response_model=ClientResponse)
 def create_client(
@@ -23,22 +23,21 @@ def create_client(
 
 
 # Rota privada - apenas cliente autenticado pode acessar
-@router.get('/', response_model=ClientResponse)
+@router.get('/me', response_model=ClientResponse)
 def get_me(
-    current_client: Client = Depends(get_current_client),
-    db: Session = Depends(get_db)
+    current = Depends(get_current_client)
 ):
-    return {'client': current_client}
+    return {'client': current['client']}
 
 
 # Rota para atualizar seus próprios dados
 @router.put('/me', response_model=ClientResponse)
 def update_me(
     client_data: ClientUpdate,
-    current_client: Client = Depends(get_current_client),
+    current = Depends(get_current_client),
     db: Session = Depends(get_db)
 ):
-    updated = get_update_client(current_client.id, client_data, db)
+    updated = get_update_client(current['client'].id, client_data, db)
     return {'client': updated}
 
 
@@ -46,10 +45,10 @@ def update_me(
 # Rota para deletar sua conta
 @router.delete('/me', response_model=ClientDeleteResponse)
 def delete_me(
-    current_client: Client = Depends(get_current_client),
+    current = Depends(get_current_client),
     db: Session = Depends(get_db)
 ):
-    delete_client(current_client.id, db)
+    delete_client(current['client'].id, db)
     return {'message': 'Conta excluída com sucesso'}
 
 

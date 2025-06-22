@@ -1,10 +1,12 @@
+# app/services/client.py
+
 from app.models.client import Client
 from app.schemas.client import (
     ClientCreate, ClientUpdate
 )
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from app.utils.hashing import hash_password, verify_password
+from app.utils.hashing import hash_password
 from app.auth.auth_service import create_access_token
 
 def new_client(client_data: ClientCreate, db: Session):
@@ -32,7 +34,15 @@ def new_client(client_data: ClientCreate, db: Session):
         db.add(db_client)
         db.commit()
         db.refresh(db_client)
-        return db_client
+
+        # Gera token JWT
+        access_token = create_access_token(data={"sub": str(db_client.id)})
+
+        return {
+            "client": db_client,
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
 
     except Exception as e:
         db.rollback()
@@ -40,6 +50,7 @@ def new_client(client_data: ClientCreate, db: Session):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error creating client: {str(e)}"
         )
+
 
 def get_me(current_client: Client, db: Session):
     return [current_client]

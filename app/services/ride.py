@@ -73,8 +73,8 @@ def get_rides_by_client(client_id: int, db: Session):
     return rides
 
 
-def cancel_ride(ride_id: int, db: Session):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+def cancel_ride(client_id: int, ride_id: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -87,14 +87,14 @@ def cancel_ride(ride_id: int, db: Session):
     db.refresh(ride)
     return ride
 
-def start_ride(ride_id: int, db: Session):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+def start_ride(client_id: int, ride_id: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Ride not found"
         )
-    
+
     ride.status = "em_andamento"
     ride.start_time = datetime.now()
     ride.updated_at = datetime.now()
@@ -103,11 +103,14 @@ def start_ride(ride_id: int, db: Session):
     return ride
 
 
-def finish_ride(ride_id: int, db: Session):
-    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+def finish_ride(client_id: int, ride_id: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
     if not ride:
-        raise HTTPException(status_code=404, detail="Ride not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Ride not found"
+        )
+
     ride.status = "finalizada"
     ride.end_time = datetime.now()
     ride.updated_at = datetime.now()

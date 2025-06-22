@@ -54,23 +54,25 @@ def cancel_ride_route(
     db: Session = Depends(get_db),
     current_client: Client = Depends(get_current_client)
 ):
-    ride = cancel_ride(ride_id, db)
+    ride = cancel_ride(current_client.id,ride_id, db)
     return {"ride": ride}
 
 
 @router.put("/{ride_id}/start", response_model=RideResponse)
 def start_ride_route(
     ride_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_client: Client = Depends(get_current_client)
 ):
-    ride = start_ride(ride_id, db)
+    ride = start_ride(current_client.id,ride_id, db)
     return {"ride": ride}
 
 
 @router.put("/{ride_id}/finish", response_model=RideResponse)
 def finish_ride_route(
     ride_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_client: Client = Depends(get_current_client)
 ):
-    ride = finish_ride(ride_id, db)
+    ride = finish_ride(current_client.id,ride_id, db)
     return {"ride": ride}

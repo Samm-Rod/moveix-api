@@ -51,6 +51,7 @@ class ClientList(BaseModel):
 
 class ClientResponse(BaseModel):    
     client: Client
+    role: str = "client"  # Adicione isso se for relevante
 
     class Config:
         from_attributes = True

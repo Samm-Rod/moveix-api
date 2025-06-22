@@ -20,5 +20,6 @@ class Vehicle(Base):
     active = Column(Boolean, default=True)               # veículo ativo ou não
     created_at = Column(DateTime, default=datetime.now)
 
+    # app/models/vehicles.py
     driver = relationship("Driver", back_populates="vehicles")
-    ride = relationship("Ride", back_populates="vehicle", uselist=False, cascade="all, delete")
+    rides = relationship("Ride", back_populates="vehicle", cascade="all, delete")

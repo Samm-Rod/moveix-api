@@ -9,4 +9,7 @@ def authenticate_client(email: str, password: str, db: Session):
     if not verify_password(password, client.hashed_password):
         return None
     
+    print(f"Client: {client}")
     return client
+
+    # app/services/auth_client.py

@@ -31,6 +31,7 @@ class Driver(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
+    # app/models/driver.py
     rides = relationship("Ride", back_populates="driver", cascade="all, delete")  # se ride tiver driver_id
     vehicles = relationship("Vehicle", back_populates="driver", cascade="all, delete")
 

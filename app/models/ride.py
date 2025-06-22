@@ -23,6 +23,7 @@ class Ride(Base):
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
 
+    # app/models/ride.py
     # Relacionamentos
     driver = relationship("Driver", back_populates="rides")
     client = relationship("Client", back_populates="rides")
