@@ -4,6 +4,7 @@ from app.models.client import Client
 from app.schemas.client import (
     ClientCreate, ClientUpdate
 )
+# from app.schemas.client import ClientSchema
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.utils.hashing import hash_password
@@ -19,12 +20,16 @@ def new_client(client_data: ClientCreate, db: Session):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Client already exists with this email"
         )
+        
+
+
     if existing_cpf:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Client already exists with this CPF"
         )
-
+    
+    print(f"EMAIL: {existing_email}, CPF: {existing_cpf}")   
     try:
         data = client_data.model_dump()
         data['hashed_password'] = hash_password(client_data.password)

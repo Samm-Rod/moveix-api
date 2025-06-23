@@ -4,28 +4,26 @@ from datetime import datetime
 
 class VehicleBase(BaseModel):
     model: str
+    brand: str  # agora obrigatório
     plate: str
     color: Optional[str] = None
-    driver_license: Optional[str] = None
     license_category: Optional[str] = None
 
 class VehicleCreate(VehicleBase):
-    driver_id: int
+    pass  # driver_id removido, brand obrigatório
 
 class VehicleUpdate(BaseModel):
     model: Optional[str] = None
+    brand: Optional[str] = None
     plate: Optional[str] = None
     color: Optional[str] = None
-    driver_license: Optional[str] = None
     license_category: Optional[str] = None
-
-
 
 class Vehicle(VehicleBase):
     id: int
-    driver_id: int 
+    driver_id: int
     created_at: datetime
-    updated_at: datetime 
+    updated_at: Optional[datetime] = None  # Torna updated_at opcional
 
     class Config:
         from_attributes = True

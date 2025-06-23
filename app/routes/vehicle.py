@@ -18,18 +18,18 @@ router = APIRouter()
 def new_vehicle(
     vehicle: VehicleCreate, 
     db: Session = Depends(get_db), 
-    current_driver: Driver = Depends(get_current_driver)
+    current_driver = Depends(get_current_driver)
 ):
-    vehicle.driver_id = current_driver.id
-    return create_vehicle(vehicle, db)
-
+    # Garante que está passando apenas o id do driver autenticado
+    created_vehicle = create_vehicle(vehicle, current_driver['driver'].id, db)
+    return {"vehicle": created_vehicle}
 
 @router.get('/', response_model=VehicleList)
 def get_all_veh(
     db: Session = Depends(get_db),
-    current_driver: Driver = Depends(get_current_driver)
+    current_driver = Depends(get_current_driver)
 ):
-    vehicles = get_all_vehicles(current_driver, db)
+    vehicles = get_all_vehicles(current_driver['driver'], db)
     return {"vehicles": vehicles}
 
 @router.put('/{vehicle_id}', response_model=VehicleResponse)
@@ -37,16 +37,16 @@ def edit_data_veh(
     vehicle_id: int,
     vehicle_data: VehicleUpdate,
     db: Session = Depends(get_db),
-    current_driver: Driver = Depends(get_current_driver)
+    current_driver = Depends(get_current_driver)
 ):
-    veh_update = update_vehicle(vehicle_id, vehicle_data, current_driver.id, db)
+    veh_update = update_vehicle(vehicle_id, vehicle_data, current_driver['driver'].id, db)
     return {"vehicle": veh_update}
 
 @router.delete('/{vehicle_id}', response_model=VehicleResponse)
 def remove_vehicle(
     vehicle_id: int,
     db: Session = Depends(get_db),
-    current_driver: Driver = Depends(get_current_driver)
+    current_driver = Depends(get_current_driver)
 ):
-    deleted = delete_vehicle(vehicle_id, current_driver.id, db)
+    deleted = delete_vehicle(vehicle_id, current_driver['driver'].id, db)
     return deleted

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.models.client import Client 
 from app.services.client import new_client, get_update_client, delete_client
 from app.auth.dependencies import get_current_client
 from app.schemas.client import (
@@ -10,6 +9,7 @@ from app.schemas.client import (
     ClientResponse,
     ClientDeleteResponse
 )
+from app.schemas.client import Client as ClientSchema
 
 
 router = APIRouter()
@@ -19,7 +19,8 @@ def create_client(
     client: ClientCreate, 
     db: Session = Depends(get_db)
 ):
-    return {'client': new_client(client, db)}  
+    created = new_client(client, db)
+    return {'client': ClientSchema.model_validate(created['client'])}
 
 
 # Rota privada - apenas cliente autenticado pode acessar
@@ -53,3 +54,20 @@ def delete_me(
 
 
 
+# {
+#   "client": {
+#     "name": "José",
+#     "email": "jose@gmail.com",
+#     "phone": "6666-6666",
+#     "cpf": "66666666666",
+#     "address": "rua6",
+#     "city": "Brasília",
+#     "state": "DF",
+#     "postal_code": "66666666",
+#     "country": "Brazil",
+#     "id": 10,
+#     "created_at": "2025-06-22T00:48:23.753794",
+#     "updated_at": "2025-06-22T00:48:23.753816"
+#   },
+#   "role": "client"
+# }

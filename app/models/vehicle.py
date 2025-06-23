@@ -14,6 +14,8 @@ class Vehicle(Base):
     brand = Column(String, nullable=False)         # Ex: 'Toyota'
     color = Column(String, nullable=True)          # Ex: 'Preto'
     plate = Column(String, unique=True, nullable=False)  # Ex: 'ABC-1234'
+    license_category = Column(String, nullable=True)
+
 
     chassis = Column(String, unique=True, nullable=True) # opcional: segurança
     tracker_enabled = Column(Boolean, default=False)     # se tem rastreador

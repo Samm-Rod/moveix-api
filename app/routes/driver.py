@@ -21,25 +21,25 @@ def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
 # Obter dados do próprio motorista
 @router.get('/me', response_model=DriverResponse)
 def read_current_driver(
-    current_driver: Driver = Depends(get_current_driver)
+    current = Depends(get_current_driver)
 ):
-    return {'driver': current_driver}
+    return {'driver': current['driver']}
 
 # Atualizar dados do próprio motorista
 @router.put('/', response_model=DriverResponse)
 def update_driver(
     driver_data: DriverUpdate,
     db: Session = Depends(get_db),
-    current_driver: Driver = Depends(get_current_driver)
+    current = Depends(get_current_driver)
 ):
-    updated_driver = update_driver_service(current_driver.id, driver_data, db)
+    updated_driver = update_driver_service(current['driver'].id, driver_data, db)
     return {'driver': updated_driver}
 
 # Deletar conta do motorista
 @router.delete('/', response_model=dict)
 def delete_driver(
     db: Session = Depends(get_db),
-    current_driver: Driver = Depends(get_current_driver)
+    current = Depends(get_current_driver)
 ):
-    delete_driver_service(current_driver.id, db)
+    delete_driver_service(current['driver'].id, db)
     return {'message': 'Conta deletada com sucesso'}

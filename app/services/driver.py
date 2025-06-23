@@ -35,7 +35,10 @@ def new_driver_service(driver_data: DriverCreate, db: Session):
     try:
         data = driver_data.model_dump()
         data['hashed_password'] = hash_password(driver_data.password)
-        data.pop('password') 
+        data.pop('password')
+        # Remove campos que não existem no modelo Driver
+        for field in ['car_model', 'car_plate', 'car_color', 'driver_license', 'license_category']:
+            data.pop(field, None)
 
         db_driver = Driver(**data)
         db.add(db_driver)

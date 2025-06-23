@@ -1,0 +1,51 @@
+
+[X] Resolvidos
+[ ] Pendentes
+[*] Prioritário
+
++ Endpoints criados
+    -> Clients[X]
+    -> Drivers[]
+    -> Ride[]
+    -> Vehicles[]
+    -> Login []
+    -> Logout [*]
+
++ Novas feactures 
+    -> Esqueci a senha []
+    -> 2FA - security []
+    -> Ver logs de erro []
+    -> Visualizar tráfego e requisições []
+    -> Acompanhar uso do banco de dados []
+    -> Rodar migrações ou tarefas programadas []
+    -> Canal de suporte [] 
+    -> Avaliação do client para o Driver []
+    -> Rankear/destacar Drivers com melhores avaliações []
+    -> Rastreamento da corrida []
+    -> Meio de pagamentos []
+        - Pagamento via Pix []
+        - Pagamento via cartão []
+        - Comprovante da corrida (nota, recibo) [] 
+
+    -> Admin []
+        - Ver usuários cadastrados(Clients/Drivers) []
+        - Acompanhar corridas/fretes em tempo real []
+        - Atualizar status de corrida (Pendente, concluída, cancelada) []
+        - Ver avaliações, denúncias, histórico de usuários []
+        - Bloquear Drivers/Clients problemáticos []
+        - Resetar senhas (mandando link por email) []
+        - Gerenciar promoções, preços, e anúncios []
+            - Criar cupons de desconto []
+            - Definir preços base por KM []
+            - Adicionar banners ou mensagens de marketing []
+        - Painel Admin protegido por autenticação []
+        - Usuário Admin com papel específico (is_admin=True) []
+        - Logs de ações administrativas []
+
+    + Escalabilidade futura
+        -> Multi-região (suporte a cidades diferentes) []
+        -> Notificações por SMS/Push []
+        -> IA para precificação dinâmica []
+        -> Dashboard com analytics []
+        -> Modo empresa (contratar fretes recorrentes) []
+

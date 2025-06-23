@@ -18,11 +18,14 @@ class Driver(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
-    birth_date = Column(DateTime, nullable=True)
-    cpf = Column(String, unique=True, nullable=True)
     email = Column(String, unique=True, index=True, nullable=False)
+    birth_date = Column(DateTime, nullable=True)
     phone = Column(String, nullable=True)
-    
+    cpf = Column(String, unique=True, nullable=True)
+    address = Column(String, nullable=True)
+    postal_code = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    rating = Column(Float, default=5.0, nullable=False)  # Avaliação
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)

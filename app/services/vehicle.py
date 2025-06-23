@@ -25,7 +25,7 @@ from app.models.driver import Driver
 
 """
 
-def create_vehicle(vehicle_data: VehicleCreate, db: Session):
+def create_vehicle(vehicle_data: VehicleCreate, driver_id: int, db: Session):
     existing_vehicle = db.query(Vehicle).filter(Vehicle.plate == vehicle_data.plate).first()
 
     if existing_vehicle:
@@ -35,12 +35,12 @@ def create_vehicle(vehicle_data: VehicleCreate, db: Session):
         )
     
     new_vehicle = Vehicle(
-        driver_id=vehicle_data.driver_id,
+        driver_id=driver_id,
         model=vehicle_data.model,
+        brand=vehicle_data.brand,
         plate=vehicle_data.plate,
         color=vehicle_data.color,
-        driver_license=vehicle_data.driver_license,
-        livense_category=vehicle_data.license_category
+        license_category=vehicle_data.license_category
     )
     db.add(new_vehicle)
     db.commit()
