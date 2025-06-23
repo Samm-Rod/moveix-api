@@ -32,36 +32,28 @@ from datetime import datetime
 
 """
 
-def new_ride(ride_data: RideCreate, db: Session):
-    # Verifica cliente e motorista
-    client = db.query(Client).filter(Client.id == ride_data.client_id).first()
-    driver = db.query(Driver).filter(Driver.id == ride_data.driver_id).first()
-
+def new_ride(ride_data: dict, db: Session):
+    # Busca cliente
+    client = db.query(Client).filter(Client.id == ride_data["client_id"]).first()
     if not client:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Client not found"
         )
-    if not driver:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Driver not found"
-        )
-
-    # Cria corrida
+    # Não busca driver nem vehicle agora, pois serão preenchidos quando o motorista aceitar
     ride = Ride(
-        driver_id=ride_data.driver_id,
-        client_id=ride_data.client_id,
-        start_location=ride_data.start_location,
-        end_location=ride_data.end_location,
-        distance=ride_data.distance,
-        duration=ride_data.duration,
-        fare=ride_data.fare,
-        status=ride_data.status,
+        client_id=ride_data["client_id"],
+        driver_id=None,
+        vehicle_id=None,
+        start_location=ride_data["start_location"],
+        end_location=ride_data["end_location"],
+        distance=ride_data["distance"],
+        duration=ride_data["duration"],
+        fare=ride_data["fare"],
+        status=ride_data["status"],
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
-
     db.add(ride)
     db.commit()
     db.refresh(ride)

@@ -7,9 +7,9 @@ class Ride(Base):
     __tablename__ = 'rides'
 
     id = Column(Integer, primary_key=True, index=True)
-    driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=False)
+    driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=True)  # Agora pode ser NULL
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=True)  # Agora pode ser NULL
 
     start_location = Column(String, nullable=False)
     end_location = Column(String, nullable=False)
