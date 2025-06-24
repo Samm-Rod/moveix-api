@@ -65,22 +65,34 @@ def get_rides_by_client(client_id: int, db: Session):
     return rides
 
 
-def cancel_ride(client_id: int, ride_id: int, db: Session):
-    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
+def cancel_ride(user_id: int, user_type: str, ride_id: int, db: Session):
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Ride not found"
+            detail="Corrida não encontrada"
         )
-    
+
+    if user_type == "client" and ride.client_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Cliente não autorizado"
+        )
+    if user_type == "driver" and ride.driver_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Motorista não autorizado"
+        )
+
     ride.status = "cancelled"
     ride.updated_at = datetime.now()
     db.commit()
     db.refresh(ride)
     return ride
 
-def start_ride(client_id: int, ride_id: int, db: Session):
-    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
+
+def start_ride(driver_id: int, ride_id: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, driver_id=driver_id).first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -95,8 +107,8 @@ def start_ride(client_id: int, ride_id: int, db: Session):
     return ride
 
 
-def finish_ride(client_id: int, ride_id: int, db: Session):
-    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
+def finish_ride(driver_id: int, ride_id: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, driver_id=driver_id).first()
     if not ride:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -105,6 +117,43 @@ def finish_ride(client_id: int, ride_id: int, db: Session):
 
     ride.status = "finalizada"
     ride.end_time = datetime.now()
+    ride.updated_at = datetime.now()
+    db.commit()
+    db.refresh(ride)
+    return ride
+
+
+def get_current_ride_by_client(client_id: int, db: Session):
+    ride = db.query(Ride).filter(
+        Ride.client_id == client_id,
+        Ride.status.notin_(["finalizada", "cancelled"])
+    ).order_by(Ride.created_at.desc()).first()
+    return ride
+
+
+def rate_ride(client_id: int, ride_id: int, rating: int, db: Session):
+    ride = db.query(Ride).filter_by(id=ride_id, client_id=client_id).first()
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Corrida não encontrada para este cliente"
+        )
+    if ride.status != "finalizada":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Só é possível avaliar corridas finalizadas"
+        )
+    if ride.rating is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Esta corrida já foi avaliada"
+        )
+    if not (0 <= rating <= 5):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A avaliação deve ser entre 0 e 5"
+        )
+    ride.rating = rating
     ride.updated_at = datetime.now()
     db.commit()
     db.refresh(ride)

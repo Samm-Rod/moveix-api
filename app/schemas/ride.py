@@ -21,6 +21,7 @@ class RideUpdate(RideBase):
     status: Optional[str] = None
     driver_id: Optional[int] = None
     vehicle_id: Optional[int] = None
+    rating: Optional[int] = None  # Avaliação de 0 a 5
 
 class Ride(RideBase):
     id: int
@@ -32,6 +33,7 @@ class Ride(RideBase):
     updated_at: datetime
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
+    rating: Optional[int] = None  # Avaliação de 0 a 5
 
     class Config:
         from_attributes = True
@@ -50,6 +52,12 @@ class RideResponse(BaseModel):
 
 class RideDeleteResponse(BaseModel):
     message: str
+
+    class Config:
+        from_attributes = True
+
+class RideRating(BaseModel):
+    rating: int = Field(..., ge=0, le=5, description="Avaliação de 0 a 5")
 
     class Config:
         from_attributes = True

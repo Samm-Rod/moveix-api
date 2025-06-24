@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.services.client import new_client, get_update_client, delete_client
-from app.auth.dependencies import get_current_client
+from app.auth.dependencies import get_current_user
 from app.schemas.client import (
     ClientCreate, 
     ClientUpdate,
@@ -26,30 +26,35 @@ def create_client(
 # Rota privada - apenas cliente autenticado pode acessar
 @router.get('/me', response_model=ClientResponse)
 def get_me(
-    current = Depends(get_current_client)
+    current_user = Depends(get_current_user)
 ):
-    return {'client': current['client']}
+    if current_user['role'] != 'client':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
+    return {'client': current_user['user']}
 
 
 # Rota para atualizar seus próprios dados
 @router.put('/me', response_model=ClientResponse)
 def update_me(
     client_data: ClientUpdate,
-    current = Depends(get_current_client),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    updated = get_update_client(current['client'].id, client_data, db)
+    if current_user['role'] != 'client':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
+    updated = get_update_client(current_user['user'].id, client_data, db)
     return {'client': updated}
-
 
 
 # Rota para deletar sua conta
 @router.delete('/me', response_model=ClientDeleteResponse)
 def delete_me(
-    current = Depends(get_current_client),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    delete_client(current['client'].id, db)
+    if current_user['role'] != 'client':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
+    delete_client(current_user['user'].id, db)
     return {'message': 'Conta excluída com sucesso'}
 
 

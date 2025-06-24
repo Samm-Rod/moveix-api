@@ -7,9 +7,9 @@ class Ride(Base):
     __tablename__ = 'rides'
 
     id = Column(Integer, primary_key=True, index=True)
-    driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=True)  # Agora pode ser NULL
+    driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=False)  # Agora pode ser NULL
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=True)  # Agora pode ser NULL
+    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)  # Agora pode ser NULL
 
     start_location = Column(String, nullable=False)
     end_location = Column(String, nullable=False)
@@ -17,6 +17,7 @@ class Ride(Base):
     duration = Column(Float, nullable=False)   # minutos
     fare = Column(Float, nullable=False)       # moeda local
     status = Column(String, default='pending') # ex: pending, em_andamento, finalizada, cancelada
+    rating = Column(Integer, nullable=True)  # Avaliação de 0 a 5
 
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)

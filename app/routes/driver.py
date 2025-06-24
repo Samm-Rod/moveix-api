@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.schemas.driver import DriverCreate, Driver, DriverUpdate, DriverResponse
@@ -8,7 +8,7 @@ from app.services.driver import (
     update_driver_service,
     delete_driver_service
 )
-from app.auth.dependencies import get_current_driver
+from app.auth.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -21,25 +21,31 @@ def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
 # Obter dados do próprio motorista
 @router.get('/me', response_model=DriverResponse)
 def read_current_driver(
-    current = Depends(get_current_driver)
+    current_user = Depends(get_current_user)
 ):
-    return {'driver': current['driver']}
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+    return {'driver': current_user['user']}
 
 # Atualizar dados do próprio motorista
 @router.put('/', response_model=DriverResponse)
 def update_driver(
     driver_data: DriverUpdate,
     db: Session = Depends(get_db),
-    current = Depends(get_current_driver)
+    current_user = Depends(get_current_user)
 ):
-    updated_driver = update_driver_service(current['driver'].id, driver_data, db)
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+    updated_driver = update_driver_service(current_user['user'].id, driver_data, db)
     return {'driver': updated_driver}
 
 # Deletar conta do motorista
 @router.delete('/', response_model=dict)
 def delete_driver(
     db: Session = Depends(get_db),
-    current = Depends(get_current_driver)
+    current_user = Depends(get_current_user)
 ):
-    delete_driver_service(current['driver'].id, db)
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+    delete_driver_service(current_user['user'].id, db)
     return {'message': 'Conta deletada com sucesso'}

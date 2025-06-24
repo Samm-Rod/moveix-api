@@ -29,4 +29,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             "token_type": "bearer"
         }
     print(f"User: {user}")
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, 
+        detail="Invalid credentials"
+    )

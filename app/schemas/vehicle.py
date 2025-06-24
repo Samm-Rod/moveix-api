@@ -42,3 +42,9 @@ class VehicleResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VehicleChoose(BaseModel):    
+    vehicle: Vehicle
+
+    class Config:
+        from_attributes = True

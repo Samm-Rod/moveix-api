@@ -22,6 +22,8 @@ from app.models.driver import Driver
     
     -> Removê-lo da minha lista 
         - *
+    -> Trocar de veículo
+        - *
 
 """
 
@@ -59,6 +61,23 @@ def get_all_vehicles(current_driver: Driver, db: Session):
     vehicles = db.query(Vehicle).filter(Vehicle.driver_id == current_driver.id).all()
 
     return vehicles
+
+def choose_vehicle(vehicle_id: int, driver_id: int, db: Session):
+    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+
+    if not vehicle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Vehicle not found'
+        )
+    
+    if vehicle.driver_id != driver_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You do not have permission to choose this vehicle'
+        )
+
+    return vehicle
 
 
 def update_vehicle(vehicle_id: int, vehicle_data: VehicleUpdate, driver_id: int, db: Session):
