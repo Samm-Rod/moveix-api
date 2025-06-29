@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.utils.hashing import hash_password
 from app.auth.auth_service import create_access_token
+from app.auth.two_f import generate_2fa_secret, send_2fa_code, generate_2fa_code, verify_2fa_code
+import random
+import string
 
 def new_client(client_data: ClientCreate, db: Session):
     # Verifica se já existe cliente com mesmo e-mail ou CPF
@@ -111,6 +114,52 @@ def delete_client(client_id: int, db: Session):
 
     db.delete(client)
     db.commit()
+
+# Iniciar 2FA para login ou ação sensível
+def start_2fa_for_client(client: Client, db):
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    if not hasattr(client, 'two_fa_secret') or not client.two_fa_secret:
+        # Gera e salva segredo se não existir
+        secret = generate_2fa_secret()
+        client.two_fa_secret = secret
+        db.commit()
+        db.refresh(client)
+    else:
+        secret = client.two_fa_secret
+    code = generate_2fa_code(secret)
+    send_2fa_code(client.email, code)
+    return True
+
+# Validar código 2FA
+def validate_2fa_for_client(client: Client, code: str) -> bool:
+    if not client or not hasattr(client, 'two_fa_secret') or not client.two_fa_secret:
+        return False
+    return verify_2fa_code(client.two_fa_secret, code)
+
+# Iniciar fluxo de esqueci a senha
+def forgot_password_client(email: str, db):
+    client = db.query(Client).filter(Client.email == email).first()
+    if not client:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    # Gera código temporário (mock)
+    code = ''.join(random.choices(string.digits, k=6))
+    client.reset_code = code
+    db.commit()
+    db.refresh(client)
+    send_2fa_code(client.email, code)
+    return True
+
+# Validar código e redefinir senha
+def reset_password_client(email: str, code: str, new_password: str, db):
+    client = db.query(Client).filter(Client.email == email).first()
+    if not client or client.reset_code != code:
+        raise HTTPException(status_code=400, detail="Código inválido")
+    client.hashed_password = hash_password(new_password)
+    client.reset_code = None
+    db.commit()
+    db.refresh(client)
+    return True
 
 
 

@@ -15,7 +15,10 @@ from app.services.ride import (
     start_ride,
     finish_ride,
     get_current_ride_by_client,
-    rate_ride
+    rate_ride,
+    get_available_rides,
+    accept_ride_service,
+    get_rides_by_driver
 )
 from app.schemas.ride import (
     RideCreate,
@@ -55,7 +58,7 @@ def list_available_rides(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Apenas motoristas podem ver corridas disponíveis"
         )
-    rides = db.query(Ride).filter(Ride.status == "pending").all()
+    rides = get_available_rides(db)
     return {"rides": rides}
 
 @router.put("/{ride_id}/accept", response_model=RideResponse)
@@ -69,26 +72,21 @@ def accept_ride(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Apenas motoristas podem aceitar corrida"
         )
-    ride = db.query(Ride).filter(Ride.id == ride_id, Ride.status == "pending").first()
-    if not ride:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Corrida não disponível para aceitação"
-        )
-
-    driver = current_user['user']
-    if not driver.vehicles:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Motorista não tem veículo cadastrado"
-        )
-    ride.driver_id = driver.id
-    ride.vehicle_id = driver.vehicles[0].id
-    ride.status = "accepted"  # agora sim muda status
-    ride.updated_at = datetime.now()
-    db.commit()
-    db.refresh(ride)
+    ride = accept_ride_service(current_user['user'], ride_id, db)
     return {"ride": ride}
+
+@router.get("/my-rides", response_model=RideList)
+def get_driver_rides(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    if current_user["role"] != "driver":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas motoristas podem ver suas corridas"
+        )
+    rides = get_rides_by_driver(current_user['user'].id, db)
+    return {"rides": rides}
 
 @router.get("/my-history", response_model=RideList)
 def get_client_ride_history(

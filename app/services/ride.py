@@ -50,7 +50,7 @@ def new_ride(ride_data: dict, db: Session):
         distance=ride_data["distance"],
         duration=ride_data["duration"],
         fare=ride_data["fare"],
-        status=ride_data["status"],
+        status="disponivel",
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
@@ -158,3 +158,28 @@ def rate_ride(client_id: int, ride_id: int, rating: int, db: Session):
     db.commit()
     db.refresh(ride)
     return ride
+
+# Listar corridas disponíveis para motoristas
+
+def get_available_rides(db: Session):
+    return db.query(Ride).filter(Ride.status == "disponivel").all()
+
+# Motorista aceita corrida (pega a corrida)
+def accept_ride_service(driver, ride_id: int, db: Session):
+    ride = db.query(Ride).filter(Ride.id == ride_id, Ride.status == "disponivel").first()
+    if not ride:
+        raise HTTPException(status_code=404, detail="Corrida não disponível para aceitação")
+    if not driver.vehicles:
+        raise HTTPException(status_code=400, detail="Motorista não tem veículo cadastrado")
+    ride.driver_id = driver.id
+    ride.vehicle_id = driver.vehicles[0].id
+    ride.status = "em_andamento"
+    ride.start_time = datetime.now()
+    ride.updated_at = datetime.now()
+    db.commit()
+    db.refresh(ride)
+    return ride
+
+# Listar corridas do driver (em andamento ou histórico)
+def get_rides_by_driver(driver_id: int, db: Session):
+    return db.query(Ride).filter(Ride.driver_id == driver_id).all()

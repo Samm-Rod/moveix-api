@@ -20,6 +20,8 @@ def new_vehicle(
     db: Session = Depends(get_db), 
     current_user = Depends(get_current_user)
 ):
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=403, detail='Apenas motoristas podem cadastrar veículos')
     created_vehicle = create_vehicle(vehicle, current_user['user'].id, db)
     return {"vehicle": created_vehicle}
 
@@ -28,6 +30,8 @@ def get_all_veh(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=403, detail='Apenas motoristas podem visualizar veículos')
     vehicles = get_all_vehicles(current_user['user'], db)
     return {"vehicles": vehicles}
 
@@ -38,6 +42,8 @@ def edit_data_veh(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=403, detail='Apenas motoristas podem editar veículos')
     veh_update = update_vehicle(vehicle_id, vehicle_data, current_user['user'].id, db)
     return {"vehicle": veh_update}
 
@@ -47,6 +53,8 @@ def remove_vehicle(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=403, detail='Apenas motoristas podem remover veículos')
     deleted = delete_vehicle(vehicle_id, current_user['user'].id, db)
     return deleted
 
@@ -56,5 +64,7 @@ def choose_vehicle_route(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    if current_user['role'] != 'driver':
+        raise HTTPException(status_code=403, detail='Apenas motoristas podem escolher veículo')
     vehicle = choose_vehicle(vehicle_id, current_user['user'].id, db)
     return {"vehicle": vehicle}

@@ -8,6 +8,9 @@ bcrypt==3.2.2
 python-jose[cryptography]
 alembic
 python-multipart
+two-fast-auth
+fastapi-mail
+pyotp
 # Optional dependencies for additional features
 httpx
 # Optional dependencies for testing

@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.services.client import new_client, get_update_client, delete_client
+from app.services.client import (
+    new_client, 
+    get_update_client, 
+    delete_client
+)
 from app.auth.dependencies import get_current_user
 from app.schemas.client import (
     ClientCreate, 
@@ -10,6 +14,7 @@ from app.schemas.client import (
     ClientDeleteResponse
 )
 from app.schemas.client import Client as ClientSchema
+from app.models.client import Client
 
 
 router = APIRouter()
@@ -56,7 +61,6 @@ def delete_me(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
     delete_client(current_user['user'].id, db)
     return {'message': 'Conta excluída com sucesso'}
-
 
 
 # {

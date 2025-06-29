@@ -18,6 +18,9 @@ class Client(Base):
     state = Column(String, nullable=True)
     postal_code = Column(String, nullable=True)
     country = Column(String, nullable=True)
+
+    two_fa_secret = Column(String, nullable=True)  # 2FA
+    reset_code = Column(String, nullable=True)     # Código de reset de senha
     
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)

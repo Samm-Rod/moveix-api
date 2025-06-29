@@ -6,7 +6,7 @@ from app.services.driver import (
     new_driver_service,
     get_driver_by_id,
     update_driver_service,
-    delete_driver_service
+    delete_driver_service,
 )
 from app.auth.dependencies import get_current_user
 

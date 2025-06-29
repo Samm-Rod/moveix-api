@@ -34,6 +34,13 @@ class Driver(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
+    has_helpers = Column(Boolean, default=False, nullable=False)  # Tem ajudantes
+    helper_price = Column(Float, nullable=True)  # Valor do ajudante (opcional)
+    is_blocked = Column(Boolean, default=False, nullable=False)  # Bloqueado
+
+    two_fa_secret = Column(String, nullable=True)  # 2FA
+    reset_code = Column(String, nullable=True)     # Código de reset de senha
+
     # app/models/driver.py
     rides = relationship("Ride", back_populates="driver", cascade="all, delete")  # se ride tiver driver_id
     vehicles = relationship("Vehicle", back_populates="driver", cascade="all, delete")

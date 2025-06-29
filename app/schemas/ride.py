@@ -8,6 +8,10 @@ class RideBase(BaseModel):
     distance: float  # in kilometers
     duration: float  # in minutes
     fare: float  # in local currency
+    scheduled: bool = False
+    freight_type: str = 'mudanca'
+    volume: Optional[int] = None
+    round_trip: bool = False
 
 class RideCreate(RideBase):
     pass  # Não exige client_id, driver_id, vehicle_id nem status
@@ -22,6 +26,10 @@ class RideUpdate(RideBase):
     driver_id: Optional[int] = None
     vehicle_id: Optional[int] = None
     rating: Optional[int] = None  # Avaliação de 0 a 5
+    scheduled: Optional[bool] = None
+    freight_type: Optional[str] = None
+    volume: Optional[int] = None
+    round_trip: Optional[bool] = None
 
 class Ride(RideBase):
     id: int

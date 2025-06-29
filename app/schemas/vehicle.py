@@ -8,6 +8,7 @@ class VehicleBase(BaseModel):
     plate: str
     color: Optional[str] = None
     license_category: Optional[str] = None
+    size: str  # pequeno, médio, grande
 
 class VehicleCreate(VehicleBase):
     pass  # driver_id removido, brand obrigatório
@@ -18,6 +19,7 @@ class VehicleUpdate(BaseModel):
     plate: Optional[str] = None
     color: Optional[str] = None
     license_category: Optional[str] = None
+    size: Optional[str] = None
 
 class Vehicle(VehicleBase):
     id: int

@@ -16,11 +16,11 @@ class Vehicle(Base):
     plate = Column(String, unique=True, nullable=False)  # Ex: 'ABC-1234'
     license_category = Column(String, nullable=True)
 
-
     chassis = Column(String, unique=True, nullable=True) # opcional: segurança
     tracker_enabled = Column(Boolean, default=False)     # se tem rastreador
     active = Column(Boolean, default=True)               # veículo ativo ou não
     created_at = Column(DateTime, default=datetime.now)
+    size = Column(String, nullable=False, default='pequeno')  # Porte: pequeno, médio, grande
 
     # app/models/vehicles.py
     driver = relationship("Driver", back_populates="vehicles")

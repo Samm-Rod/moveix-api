@@ -16,6 +16,9 @@ class DriverBase(BaseModel):
     country: Optional[str] = None
     rating: Optional[float] = 5.0
     is_active: Optional[bool] = True   
+    has_helpers: bool = False
+    helper_price: Optional[float] = None
+    is_blocked: Optional[bool] = False
 
 class DriverCreate(DriverBase):
     password: str
@@ -38,6 +41,9 @@ class DriverUpdate(BaseModel):
     country: Optional[str] = None
     rating: Optional[float] = None
     is_active: Optional[bool] = None  
+    has_helpers: Optional[bool] = None
+    helper_price: Optional[float] = None
+    is_blocked: Optional[bool] = None
 
 class Driver(DriverBase):
     id: int

@@ -5,10 +5,10 @@
 
 + Endpoints criados
     -> Clients[X]
-    -> Drivers[]
-    -> Ride[]
-    -> Vehicles[]
-    -> Login []
+    -> Drivers[X]
+    -> Ride[X]
+    -> Vehicles[X]
+    -> Login [X]
     -> Logout [*]
 
 + Novas feactures 
