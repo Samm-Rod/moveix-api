@@ -9,17 +9,17 @@
     -> Ride[X]
     -> Vehicles[X]
     -> Login [X]
-    -> Logout [*]
+    -> Logout [X]
 
 + Novas feactures 
-    -> Esqueci a senha []
-    -> 2FA - security []
+    -> Esqueci a senha [X]
+    -> 2FA - security [X]
     -> Ver logs de erro []
     -> Visualizar tráfego e requisições []
     -> Acompanhar uso do banco de dados []
     -> Rodar migrações ou tarefas programadas []
     -> Canal de suporte [] 
-    -> Avaliação do client para o Driver []
+    -> Avaliação do client para o Driver [X]
     -> Rankear/destacar Drivers com melhores avaliações []
     -> Rastreamento da corrida []
     -> Meio de pagamentos []
@@ -48,4 +48,16 @@
         -> IA para precificação dinâmica []
         -> Dashboard com analytics []
         -> Modo empresa (contratar fretes recorrentes) []
+
+
+Version MVP V0.1
++ API do google cloud -> maps -> directions .. [X]
++ Geolocalização = address -> latitude, longetude []
++ Geolocalização reversa = latitude, longetude -> address []
++ Tests no back-end []
++ API de pagamento Asaas []
++ Front-end/Mobile -> react.js/react native []
++ Implementação da visualização do google_maps []
++ Tests com o Front-end []
++ Sobe para produção ! ! ! []
 

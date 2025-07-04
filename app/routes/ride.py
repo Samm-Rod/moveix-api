@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from app.schemas.ride import RideList, RideResponse, RideRating
+from app.schemas.ride import RideBooking, RideList, RideResponse, RideRating
 from app.db.database import get_db
 from app.models.client import Client
 from app.models.ride import Ride
@@ -9,7 +9,8 @@ from app.auth.dependencies import get_current_user
 from app.models.driver import Driver
 from app.models.ride import Ride
 from app.services.ride import (
-    new_ride,
+    calculator_ride,
+    confirm_ride,
     get_rides_by_client,
     cancel_ride,
     start_ride,
@@ -21,32 +22,33 @@ from app.services.ride import (
     get_rides_by_driver
 )
 from app.schemas.ride import (
-    RideCreate,
     RideResponse
 )
+
+from app.schemas.quote import QuoteResponse
 
 router = APIRouter()
 
 
-@router.post("/", response_model=RideResponse)
-def create_ride(
-    ride: RideCreate,
+@router.get('/quote', response_model=QuoteResponse)
+async def quote(
+    origin: str = Query(..., description="Endereço de partida"),
+    destination: str = Query(..., description="Endereço de destino"),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    # Preenche client_id automaticamente, não exige vehicle_id nem driver_id
-    if current_user["role"] != "client":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas clientes podem solicitar corrida"
-        )
-    ride_data = ride.model_dump()
-    ride_data["client_id"] = current_user['user'].id
-    ride_data.pop("vehicle_id", None)
-    ride_data.pop("driver_id", None)
-    ride_data["status"] = "pending"  # aguardando motorista aceitar
-    created_ride = new_ride(ride_data, db)
-    return {"ride": created_ride}
+    return await calculator_ride(origin, destination, db, current_user)
+
+
+# Cliente confirma a corrida
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=RideResponse)
+def book_ride(
+    booking: RideBooking,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # booking.model_dump() ou booking.dict() dependendo da versão
+    return confirm_ride(booking.model_dump(), db, current_user)
 
 @router.get("/available", response_model=RideList)
 def list_available_rides(

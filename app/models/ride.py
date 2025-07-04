@@ -9,7 +9,7 @@ class Ride(Base):
     id = Column(Integer, primary_key=True, index=True)
     driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=True)  # Pode ser NULL até o driver aceitar
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)  # Agora pode ser NULL
+    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=True)  # Agora pode ser NULL
 
     start_location = Column(String, nullable=False)
     end_location = Column(String, nullable=False)
@@ -34,6 +34,7 @@ class Ride(Base):
     driver = relationship("Driver", back_populates="rides")
     client = relationship("Client", back_populates="rides")
     vehicle = relationship("Vehicle", back_populates="rides")
-
+    locations = relationship("Location", back_populates="ride")
+    
     def __repr__(self):
         return f"<Ride(id={self.id}, driver_id={self.driver_id}, client_id={self.client_id})>"

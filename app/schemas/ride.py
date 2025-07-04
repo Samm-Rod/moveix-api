@@ -70,3 +70,6 @@ class RideRating(BaseModel):
     class Config:
         from_attributes = True
 
+
+class RideBooking(RideBase):
+    driver_id: int
