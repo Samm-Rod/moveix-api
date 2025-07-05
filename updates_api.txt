@@ -61,3 +61,17 @@ Version MVP V0.1
 + Tests com o Front-end []
 + Sobe para produção ! ! ! []
 
+Planaltina df 
+Samambaia DF
+
+{
+  "start_location": "Samambaia, Brasília - Federal District, Brazil",
+  "end_location": "Planaltina, Brasília - Federal District, Brazil",
+  "distance": 66.52,
+  "duration": 63.1,
+  "fare": 202.84,
+  "driver_id": 1
+}
+
+
+

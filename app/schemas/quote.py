@@ -6,7 +6,9 @@ from typing import List
 class QuoteOption(BaseModel):
     driver_id: int = Field(..., description="ID do motorista")
     driver_name: str = Field(..., description="Nome do motorista")
-    vehicle: str | None = Field(None, description="Placa ou modelo do veículo")
+    vehicle_model: str | None = Field(None, description="Modelo ou modelo do veículo")
+    vehicle_color: str | None = Field(None, description="Cor ou modelo do veículo")
+    vehicle_plate: str | None = Field(None, description="Placa ou modelo do veículo")
     distance_km: float = Field(..., description="Distância em km")
     duration_min: float = Field(..., description="Duração em minutos")
     estimated_fare: float = Field(..., description="Valor estimado do frete")

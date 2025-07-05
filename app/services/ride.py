@@ -1,7 +1,6 @@
 # app/services/ride.py
 
 from app.models.ride import Ride
-from app.schemas.ride import RideCreate
 from app.models.driver import Driver
 from app.models.client import Client
 from sqlalchemy.orm import Session
@@ -37,7 +36,6 @@ GOOGLE_API_KEY = settings.GOOGLE_MAPS_API_KEY
      - Tarifa base do app
 
 """
-
 def confirm_ride(ride_data: dict, db: Session, current: dict):
     """
     Confirma uma corrida baseada nos dados de simulação:
@@ -81,8 +79,7 @@ def confirm_ride(ride_data: dict, db: Session, current: dict):
         distance=ride_data["distance"],
         duration=ride_data["duration"],
         fare=ride_data["fare"],
-        status="em_andamento",       # já inicia como em andamento
-        start_time=datetime.now(),
+        status="disponível",       # já inicia como em disponível
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
@@ -114,7 +111,7 @@ def calculator_fare(driver: Driver, distance_km: float, duracao_min: float) -> f
     return estimated_value
 
 # Função de service para cálculo de rota entre dois pontos
-async def calculator_ride(origin: str, destin: str, db: Session, current: dict):
+async def calculator_ride(origin: str, destination: str, db: Session, current: dict):
 
     if current['role'] != 'client':
         raise HTTPException(
@@ -128,7 +125,7 @@ async def calculator_ride(origin: str, destin: str, db: Session, current: dict):
                 'https://maps.googleapis.com/maps/api/directions/json',
                 params={
                     'origin': origin,
-                    'destination': destin,
+                    'destination': destination,
                     'key': GOOGLE_API_KEY
                 },
                 timeout=10
@@ -155,7 +152,9 @@ async def calculator_ride(origin: str, destin: str, db: Session, current: dict):
                 options.append({
                     "driver_id": driver.id,
                     "driver_name": driver.name,
-                    "vehicle": driver.vehicles[0].plate if driver.vehicles else None,
+                    "vehicle_model": driver.vehicles[0].model if driver.vehicles else None,
+                    "vehicle_color": driver.vehicles[0].color if driver.vehicles else None,
+                    "vehicle_plate": driver.vehicles[0].plate if driver.vehicles else None,
                     "distance_km": round(distance_km, 2),
                     "duration_min": round(duration_min, 1),
                     "estimated_fare": round(fare, 2),
@@ -275,13 +274,14 @@ def rate_ride(client_id: int, ride_id: int, rating: int, db: Session):
     return ride
 
 # Listar corridas disponíveis para motoristas
-
 def get_available_rides(db: Session):
     return db.query(Ride).filter(Ride.status == "disponivel").all()
 
+
+
 # Motorista aceita corrida (pega a corrida)
 def accept_ride_service(driver, ride_id: int, db: Session):
-    ride = db.query(Ride).filter(Ride.id == ride_id, Ride.status == "disponivel").first()
+    ride = db.query(Ride).filter(Ride.id == ride_id, Ride.status == "em_andamento").first()
     if not ride:
         raise HTTPException(status_code=404, detail="Corrida não disponível para aceitação")
     if not driver.vehicles:
@@ -298,3 +298,15 @@ def accept_ride_service(driver, ride_id: int, db: Session):
 # Listar corridas do driver (em andamento ou histórico)
 def get_rides_by_driver(driver_id: int, db: Session):
     return db.query(Ride).filter(Ride.driver_id == driver_id).all()
+
+
+# Listar todas as avaliações que o motorista conquistou/obteve !
+def get_list_rate(driver_id: int, db: Session):
+    ride = db.query(Ride).filter(
+        Ride.driver_id == driver_id, 
+        Ride.rating.isnot(None)).all()
+    
+    print(f"{len(ride)} corridas encontradas com avaliação")
+    for r in ride:
+        print(f"Avaliação: {r.rating}, Cliente: {r.client_id}, Corrida: {r.id}")
+    return ride

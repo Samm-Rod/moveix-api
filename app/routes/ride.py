@@ -1,16 +1,13 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from app.schemas.ride import RideBooking, RideList, RideResponse, RideRating
 from app.db.database import get_db
-from app.models.client import Client
 from app.models.ride import Ride
-from datetime import datetime
 from app.auth.dependencies import get_current_user
-from app.models.driver import Driver
-from app.models.ride import Ride
 from app.services.ride import (
     calculator_ride,
     confirm_ride,
+    get_list_rate,
     get_rides_by_client,
     cancel_ride,
     start_ride,
@@ -20,17 +17,23 @@ from app.services.ride import (
     get_available_rides,
     accept_ride_service,
     get_rides_by_driver
+    
 )
 from app.schemas.ride import (
+    RideList,
+    RideResponse,
+    Evaluate_driver,
+    RideRatingOut,
+    RideQuoteResponse,
     RideResponse
 )
 
-from app.schemas.quote import QuoteResponse
 
 router = APIRouter()
 
 
-@router.get('/quote', response_model=QuoteResponse)
+
+@router.get('/quote', response_model=RideQuoteResponse)
 async def quote(
     origin: str = Query(..., description="Endereço de partida"),
     destination: str = Query(..., description="Endereço de destino"),
@@ -39,16 +42,18 @@ async def quote(
 ):
     return await calculator_ride(origin, destination, db, current_user)
 
-
 # Cliente confirma a corrida
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=RideResponse)
 def book_ride(
-    booking: RideBooking,
+    booking: RideResponse,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
+    ride_data = booking.model_dump(by_alias=True)
+    ride_data["client_id"] = current_user["user"].id
+
     # booking.model_dump() ou booking.dict() dependendo da versão
-    return confirm_ride(booking.model_dump(), db, current_user)
+    return confirm_ride(ride_data, db, current_user)
 
 @router.get("/available", response_model=RideList)
 def list_available_rides(
@@ -89,6 +94,19 @@ def get_driver_rides(
         )
     rides = get_rides_by_driver(current_user['user'].id, db)
     return {"rides": rides}
+
+@router.get('/my_ratings', response_model=List[RideRatingOut])
+def get_rate_by_driver(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    if current_user['role'] != 'driver':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas Motoristas podem ver suas avaliações de corridas"
+        )
+    rides = get_list_rate(current_user['user'].id, db)
+    return rides
 
 @router.get("/my-history", response_model=RideList)
 def get_client_ride_history(
@@ -164,10 +182,12 @@ def finish_ride_route(
     ride = finish_ride(current_user['user'].id, ride_id, db)
     return {"ride": ride}
 
+
+
 @router.put("/{ride_id}/rate", response_model=RideResponse)
 def rate_ride_route(
     ride_id: int,
-    rating_data: RideRating,
+    rating_data: Evaluate_driver,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):

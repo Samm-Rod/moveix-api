@@ -13,8 +13,30 @@ class RideBase(BaseModel):
     volume: Optional[int] = None
     round_trip: bool = False
 
-class RideCreate(RideBase):
-    pass  # Não exige client_id, driver_id, vehicle_id nem status
+class RideOption(BaseModel):
+    driver_id: int
+    driver_name: str
+    vehicle_model: Optional[str] = None
+    vehicle_color: Optional[str] = None
+    vehicle_plate: Optional[str] = None
+    distance_km: float
+    duration_min: float
+    estimated_fare: float
+
+class RideQuoteResponse(BaseModel):
+    origin: str
+    destination: str
+    distance_km: float
+    duration_min: float
+    options: List[RideOption]
+
+class RideConfirmation(BaseModel):
+    start_location: str = Field(..., alias="start_location")
+    end_location: str = Field(..., alias="end_location")
+    distance_km: float = Field(..., alias="distance")
+    duration_min: float = Field(..., alias="duration")
+    fare: float
+    driver_id: int
 
 class RideUpdate(RideBase):
     start_location: Optional[str] = None
@@ -25,7 +47,7 @@ class RideUpdate(RideBase):
     status: Optional[str] = None
     driver_id: Optional[int] = None
     vehicle_id: Optional[int] = None
-    rating: Optional[int] = None  # Avaliação de 0 a 5
+    rating: Optional[int] = None
     scheduled: Optional[bool] = None
     freight_type: Optional[str] = None
     volume: Optional[int] = None
@@ -41,7 +63,7 @@ class Ride(RideBase):
     updated_at: datetime
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    rating: Optional[int] = None  # Avaliação de 0 a 5
+    rating: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -64,12 +86,20 @@ class RideDeleteResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class RideRating(BaseModel):
+class Evaluate_driver(BaseModel):
     rating: int = Field(..., ge=0, le=5, description="Avaliação de 0 a 5")
 
     class Config:
         from_attributes = True
 
 
-class RideBooking(RideBase):
-    driver_id: int
+class RideRatingOut(BaseModel):
+    id: int
+    client_id: int
+    start_location: str
+    end_location: str
+    rating: int
+
+    class Config:
+        from_attributes = True
+
