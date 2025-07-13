@@ -3,14 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes import client, driver, login, ride, vehicle, locations, payments
 from app.middleware.security_middleware import RestrictAPIMiddleware
 
-from app.routes import client
-from app.routes import driver
-from app.routes import login
-from app.routes import ride
-from app.routes import vehicle
-from app.routes import locations
-from app.routes import payments
-
 app = FastAPI(docs_url=None, redoc_url=None)  # desativa /docs e /redoc
 
 # CORS para desenvolvimento e mobile apps (ajuste conforme necessidade)
