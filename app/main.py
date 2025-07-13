@@ -5,6 +5,9 @@ from app.middleware.security_middleware import RestrictAPIMiddleware
 
 app = FastAPI(docs_url=None, redoc_url=None)  # desativa /docs e /redoc
 
+# Middleware de segurança personalizada (opcional)
+app.add_middleware(RestrictAPIMiddleware)
+
 # CORS para desenvolvimento e mobile apps (ajuste conforme necessidade)
 app.add_middleware(
     CORSMiddleware,
@@ -18,8 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Middleware de segurança personalizada (opcional)
-app.add_middleware(RestrictAPIMiddleware)
 
 # Rota base
 @app.get('/')
