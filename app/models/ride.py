@@ -35,6 +35,7 @@ class Ride(Base):
     client = relationship("Client", back_populates="rides")
     vehicle = relationship("Vehicle", back_populates="rides")
     locations = relationship("Location", back_populates="ride")
+    payment = relationship("Payment", back_populates="ride", uselist=False)
     
     def __repr__(self):
         return f"<Ride(id={self.id}, driver_id={self.driver_id}, client_id={self.client_id})>"

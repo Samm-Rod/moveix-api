@@ -64,16 +64,15 @@ def get_me(current_client: Client, db: Session):
     return [current_client]
 
 def get_all_clients(current_client: Client, db: Session):
-
     if not db.query(Client).filter(Client.id == current_client.id).first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Client not found'
         )
-    
-    clients = db.query(Client).filter(Client == current_client).all()
 
+    clients = db.query(Client).filter(Client.id == current_client.id).all()
     return clients
+
 
 
 def get_client_by_id(client_id: int, db: Session):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -27,8 +27,7 @@ class Vehicle(VehicleBase):
     created_at: datetime
     updated_at: Optional[datetime] = None  # Torna updated_at opcional
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class VehicleRemove(Vehicle):  # se quiser devolver dados completos após deletar
     message: str
@@ -36,17 +35,14 @@ class VehicleRemove(Vehicle):  # se quiser devolver dados completos após deleta
 class VehicleList(BaseModel):
     vehicles: List[Vehicle]
 
-    class Config: 
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class VehicleResponse(BaseModel):    
     vehicle: Vehicle
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class VehicleChoose(BaseModel):    
     vehicle: Vehicle
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

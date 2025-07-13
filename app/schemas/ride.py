@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -65,32 +65,27 @@ class Ride(RideBase):
     end_time: Optional[datetime] = None
     rating: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RideList(BaseModel):
     rides: List[Ride] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RideResponse(BaseModel):
     ride: Ride
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RideDeleteResponse(BaseModel):
     message: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class Evaluate_driver(BaseModel):
     rating: int = Field(..., ge=0, le=5, description="Avaliação de 0 a 5")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RideRatingOut(BaseModel):
@@ -100,6 +95,5 @@ class RideRatingOut(BaseModel):
     end_location: str
     rating: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Query, HTTPException, status
+from fastapi import APIRouter, Query
 from fastapi.params import Depends
-from app.services.locations import geocode_reverso, geocodification
+from app.services.locations import geocode_reverso, geocodification, get_tracking, update_tracking
 from app.auth.dependencies import get_current_user, get_db
 from sqlalchemy.orm import Session
+from app.schemas.locations import LocationCreate
+
 
 router = APIRouter()
 
@@ -23,4 +25,21 @@ async def reverse(
 ):
         return await geocode_reverso(lat, long, db, current_user)
 
-    
+@router.get('rides/{ride_id}/tracking')
+def get_tracking_points(
+      ride_id: int, 
+      db: Session = Depends(get_db), 
+      current_user=Depends(get_current_user)
+):
+      return get_tracking(ride_id, db, current_user)
+
+
+
+
+@router.post("/track/update")
+def track_location(
+    location: LocationCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return update_tracking(location, db, current_user)

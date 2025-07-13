@@ -11,7 +11,7 @@
     -> Login [X]
     -> Logout [X]
 
-+ Novas feactures 
++ Novas features 
     -> Esqueci a senha [X]
     -> 2FA - security [X]
     -> Ver logs de erro []

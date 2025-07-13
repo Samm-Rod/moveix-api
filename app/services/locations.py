@@ -8,8 +8,7 @@ from sqlalchemy import and_
 from app.models.locations import Location
 from datetime import datetime
 from app.models.ride import Ride
-from app.models.driver import Driver
-
+from app.schemas.locations import LocationCreate
 
 
 GOOGLE_API_KEY = settings.GOOGLE_MAPS_API_KEY
@@ -121,7 +120,74 @@ async def geocode_reverso(lat: float, long: float, db: Session, current: dict):
     }
 
 
+# Fluxo básico de rastreamento com gravação periódica
+# def tracking_location(lat:str, long: str, db: Session):
+
+#     try
+        
+#     except Exception as e:
+
+# Rastrear corrida / exibe a corrida em tempo real 
+def get_tracking(ride_id: int, db: Session, current_user: dict):
+    # Verifica se a corrida existe
+    ride = db.query(Ride).filter(Ride.id == ride_id).first()
+
+    if not ride:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Corrida não encontrada!'
+        )
+
+    # Restringe acesso ao cliente dono da corrida
+    if current_user["role"] == "client" and ride.client_id != current_user["user"].id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado"
+        )
+
+    # Consulta os pontos de localização (últimos 50, por exemplo)
+    locations = db.query(Location)\
+        .filter(Location.ride_id == ride_id)\
+        .order_by(Location.timestamp.desc())\
+        .limit(50)\
+        .all()
+
+    return [
+        {
+            "lat": float(loc.latitude),
+            "lng": float(loc.longitude),
+            "timestamp": loc.timestamp
+        } for loc in reversed(locations)
+    ]
 
 
+def update_tracking(location: LocationCreate, db: Session, current_user: dict):
+    user = current_user["user"]
+    role = current_user["role"]
+
+    if role != "driver":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Somente motoristas podem enviar localização")
+
+    # Pega a corrida mais recente do motorista que ainda está em andamento
+    ride = db.query(Ride).filter(
+        Ride.driver_id == user.id,
+        Ride.status == "em_andamento"
+    ).order_by(Ride.id.desc()).first()
+
+    if not ride:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nenhuma corrida ativa encontrada")
+
+    # Cria e grava nova localização
+    loc = Location(
+        ride_id=ride.id,
+        latitude=str(location.latitude),
+        longitude=str(location.longitude),
+        timestamp=datetime.now()
+    )
+    db.add(loc)
+    db.commit()
+    db.refresh(loc)
+
+    return {"msg": "Localização registrada", "timestamp": loc.timestamp}
 
 

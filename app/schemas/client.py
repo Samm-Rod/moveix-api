@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, List   
 
@@ -33,33 +33,28 @@ class Client(ClientBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True) 
 
 class ClientLogin(BaseModel):
     email: EmailStr
     password: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ClientList(BaseModel):    
     clients: List[Client] = []
 
-    class Config:
-        from_attributes = True 
+    model_config = ConfigDict(from_attributes=True)
 
 class ClientResponse(BaseModel):    
     client: Client
     role: str = "client"  # Adicione isso se for relevante
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ClientDeleteResponse(BaseModel):
     message: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
         

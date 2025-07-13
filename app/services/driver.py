@@ -6,6 +6,8 @@ from app.utils.hashing import hash_password
 from app.auth.two_f import generate_2fa_secret, send_2fa_code, generate_2fa_code, verify_2fa_code
 import random
 import string
+from datetime import datetime, date
+import asyncio
 
 """
 -> Cadastrar motorista:
@@ -42,6 +44,22 @@ def new_driver_service(driver_data: DriverCreate, db: Session):
         # Remove campos que não existem no modelo Driver
         for field in ['car_model', 'car_plate', 'car_color', 'driver_license', 'license_category']:
             data.pop(field, None)
+        # Corrige birth_date se vier como date
+        if isinstance(data.get('birth_date'), date) and not isinstance(data.get('birth_date'), datetime):
+            data['birth_date'] = datetime.combine(data['birth_date'], datetime.min.time())
+        # Garante campos obrigatórios
+        if 'created_at' not in data:
+            data['created_at'] = datetime.now()
+        if 'updated_at' not in data:
+            data['updated_at'] = datetime.now()
+        if 'is_active' not in data:
+            data['is_active'] = True
+        if 'has_helpers' not in data:
+            data['has_helpers'] = False
+        if 'is_blocked' not in data:
+            data['is_blocked'] = False
+        if 'rating' not in data:
+            data['rating'] = 5.0
 
         db_driver = Driver(**data)
         db.add(db_driver)
@@ -98,21 +116,22 @@ def delete_driver_service(driver_id: int, db: Session):
 def start_2fa_for_driver(driver: Driver, db):
     if not driver:
         raise HTTPException(status_code=404, detail="Motorista não encontrado")
-    if not hasattr(driver, 'two_fa_secret') or not driver.two_fa_secret:
+    # Corrige acesso ao valor real do campo
+    secret = getattr(driver, 'two_fa_secret', None)
+    if not secret:
         secret = generate_2fa_secret()
-        driver.two_fa_secret = secret
+        setattr(driver, 'two_fa_secret', secret)
         db.commit()
         db.refresh(driver)
-    else:
-        secret = driver.two_fa_secret
-    code = generate_2fa_code(secret)
-    send_2fa_code(driver.email, code)
+    code = generate_2fa_code(str(secret))
+    asyncio.run(send_2fa_code(str(driver.email), code))
     return True
 
 def validate_2fa_for_driver(driver: Driver, code: str) -> bool:
-    if not driver or not hasattr(driver, 'two_fa_secret') or not driver.two_fa_secret:
+    secret = getattr(driver, 'two_fa_secret', None)
+    if not driver or not secret:
         return False
-    return verify_2fa_code(driver.two_fa_secret, code)
+    return verify_2fa_code(str(secret), code)
 
 def forgot_password_driver(email: str, db):
     driver = db.query(Driver).filter(Driver.email == email).first()
@@ -122,7 +141,7 @@ def forgot_password_driver(email: str, db):
     driver.reset_code = code
     db.commit()
     db.refresh(driver)
-    send_2fa_code(driver.email, code)
+    asyncio.run(send_2fa_code(str(driver.email), code))
     return True
 
 def reset_password_driver(email: str, code: str, new_password: str, db):

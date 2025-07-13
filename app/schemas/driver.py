@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import date, datetime
 from typing import Optional, List
 from app.schemas.vehicle import Vehicle
@@ -51,33 +51,28 @@ class Driver(DriverBase):
     updated_at: datetime
     vehicles: List[Vehicle] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverList(BaseModel):
     drivers: List[Driver] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverResponse(BaseModel):
     driver: Driver
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverDeleteResponse(BaseModel):
     message: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverLogin(BaseModel):
     email: EmailStr
     password: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class DriverLoginResponse(BaseModel):
     access_token: str

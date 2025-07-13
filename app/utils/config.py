@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings  # Corrigido para pydantic-settings
+from pydantic_settings import BaseSettings, SettingsConfigDict  # Corrigido para pydantic-settings
 
 load_dotenv()
 
@@ -32,9 +32,12 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str = GOOGLE_MAPS_API_KEY
     GOOGLE_MAPS_API_KEY: str = GOOGLE_MAPS_API_KEY
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
 
 settings = Settings()
 
