@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import client, driver, login, ride, vehicle, locations, payments
@@ -7,7 +7,6 @@ from app.middleware.security_middleware import RestrictAPIMiddleware
 
 # Definir se está em desenvolvimento
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
-
 
 # Configurar FastAPI baseado no ambiente
 if ENVIRONMENT == "development":
