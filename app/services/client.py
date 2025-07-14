@@ -60,7 +60,7 @@ def new_client(client_data: ClientCreate, db: Session):
         )
 
 
-def get_me(current_client: Client, db: Session):
+def get_me(current_client: Client):
     return [current_client]
 
 def get_all_clients(current_client: Client, db: Session):

@@ -1,31 +1,11 @@
 from sqlalchemy.orm import Session
 from app.schemas.vehicle import (
-    VehicleCreate, VehicleUpdate, VehicleList, VehicleRemove
+    VehicleCreate, VehicleUpdate, VehicleChoose
 )
 from app.models.vehicle import Vehicle
 from fastapi import HTTPException, status
 from app.models.driver import Driver
 
-"""
-    -> Cadastrar novos veículos
-        - Modelo
-        - Placa
-        - Cor 
-        - Nº CNH
-        - Categoria
-
-    -> Listar meus veículos cadastrados
-        - *
-    
-    -> Atualizar os dados de um veículo
-        - *
-    
-    -> Removê-lo da minha lista 
-        - *
-    -> Trocar de veículo
-        - *
-
-"""
 
 def create_vehicle(vehicle_data: VehicleCreate, driver_id: int, db: Session):
     existing_vehicle = db.query(Vehicle).filter(Vehicle.plate == vehicle_data.plate).first()
@@ -42,7 +22,9 @@ def create_vehicle(vehicle_data: VehicleCreate, driver_id: int, db: Session):
         brand=vehicle_data.brand,
         plate=vehicle_data.plate,
         color=vehicle_data.color,
-        license_category=vehicle_data.license_category
+        license_category=vehicle_data.license_category,
+        status=vehicle_data.status,
+        size=vehicle_data.size
     )
     db.add(new_vehicle)
     db.commit()
@@ -76,6 +58,7 @@ def choose_vehicle(vehicle_id: int, driver_id: int, db: Session):
             status_code=status.HTTP_403_FORBIDDEN,
             detail='You do not have permission to choose this vehicle'
         )
+    vehicle.status = 'active'
 
     return vehicle
 

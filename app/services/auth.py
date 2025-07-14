@@ -6,7 +6,6 @@ from app.utils.hashing import hash_password
 from app.auth.two_f import generate_2fa_secret, send_2fa_code, generate_2fa_code, verify_2fa_code
 import random
 import string
-import asyncio
 
 def get_user_by_email(email: str, db: Session):
     # Garante que o email é string (caso venha como EmailStr do Pydantic)

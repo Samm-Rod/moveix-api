@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
-
+from app.enums.enum_vehicles import LicenseCategory, VehicleStatus, VehicleSize
 
 class Vehicle(Base):
     __tablename__='vehicles'
@@ -14,13 +14,13 @@ class Vehicle(Base):
     brand = Column(String, nullable=False)         # Ex: 'Toyota'
     color = Column(String, nullable=True)          # Ex: 'Preto'
     plate = Column(String, unique=True, nullable=False)  # Ex: 'ABC-1234'
-    license_category = Column(String, nullable=True)
+    license_category = Column(Enum(LicenseCategory, name='license_category'), nullable=False) # Cnh Enum
 
     chassis = Column(String, unique=True, nullable=True) # opcional: segurança
     tracker_enabled = Column(Boolean, default=False)     # se tem rastreador
-    active = Column(Boolean, default=True)               # veículo ativo ou não
+    status = Column(Enum(VehicleStatus, name='vehicle_status'))               # Veículo Enum
     created_at = Column(DateTime, default=datetime.now)
-    size = Column(String, nullable=False, default='pequeno')  # Porte: pequeno, médio, grande
+    size = Column(Enum(VehicleSize, name='vehicle_size'), nullable=False, default=VehicleSize.SMALL)  # Porte: pequeno, médio, grande
 
     # app/models/vehicles.py
     driver = relationship("Driver", back_populates="vehicles")
