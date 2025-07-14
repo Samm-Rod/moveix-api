@@ -1,33 +1,92 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import client, driver, login, ride, vehicle, locations, payments
 from app.middleware.security_middleware import RestrictAPIMiddleware
 
-app = FastAPI(docs_url=None, redoc_url=None)  # desativa /docs e /redoc
+# Definir se está em desenvolvimento
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
-# Middleware de segurança personalizada (opcional)
+
+# Configurar FastAPI baseado no ambiente
+if ENVIRONMENT == "development":
+    app = FastAPI(
+        title="Moveix API",
+        description="API para o aplicativo Moveix",
+        version="1.0.0",
+        # Configurar autenticação no Swagger
+        swagger_ui_parameters={
+            "persistAuthorization": True,
+            "displayRequestDuration": True,
+        }
+    )
+else:
+    app = FastAPI(
+        docs_url=None, 
+        redoc_url=None,
+        title="Moveix API",
+        description="API para o aplicativo Moveix", 
+        version="1.0.0"
+    )
+
+# Configurar esquema de segurança
+security = HTTPBearer()
+
+# Middleware de segurança personalizada
 app.add_middleware(RestrictAPIMiddleware)
 
-# CORS para desenvolvimento e mobile apps (ajuste conforme necessidade)
+# CORS para desenvolvimento e mobile apps
+cors_origins = [
+    "https://moveix.com",
+    "capacitor://localhost",
+]
+
+if ENVIRONMENT == "development":
+    cors_origins.extend([
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://localhost:4200",
+        "http://localhost:8000",
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # React local
-        "https://moveix.com",     # seu domínio final
-        "capacitor://localhost",  # mobile
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.add_middleware(RestrictAPIMiddleware)
 
 # Rota base
 @app.get('/')
 def read_root():
     return {'message': 'Hello, Moveix!'}
 
-# Rotas
+# Endpoint de health check
+@app.get('/health')
+def health_check():
+    return {
+        'status': 'healthy',
+        'environment': ENVIRONMENT,
+        'swagger_enabled': ENVIRONMENT == "development"
+    }
+
+# Endpoint para obter token de teste (apenas em desenvolvimento)
+@app.post('/auth/test-token')
+def get_test_token():
+    if ENVIRONMENT != "development":
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    return {
+        "access_token": "test-token-for-swagger-development-only",
+        "token_type": "bearer",
+        "message": "Este é um token de teste para usar no Swagger"
+    }
+
+# Rotas com dependência de segurança explícita
 app.include_router(client.router, prefix='/clients', tags=['Clients'])
 app.include_router(driver.router, prefix='/drivers', tags=['Drivers'])
 app.include_router(ride.router, prefix='/ride', tags=['Rides'])

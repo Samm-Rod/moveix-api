@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
 from app.db.database import get_db
-from app.models.vehicle import Vehicle
-from app.schemas.driver import Driver 
 from app.auth.dependencies import get_current_user
 from app.services.vehicle import (
     create_vehicle, get_all_vehicles, update_vehicle, delete_vehicle, choose_vehicle
@@ -64,7 +61,12 @@ def choose_vehicle_route(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
+    # Apenas validação de autenticação/autorização básica
     if current_user['role'] != 'driver':
-        raise HTTPException(status_code=403, detail='Apenas motoristas podem escolher veículo')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Apenas motoristas podem escolher veículo'
+        )
+    
     vehicle = choose_vehicle(vehicle_id, current_user['user'].id, db)
     return {"vehicle": vehicle}

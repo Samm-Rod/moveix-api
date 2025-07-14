@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schemas.vehicle import (
-    VehicleCreate, VehicleUpdate, VehicleChoose
+    VehicleCreate, VehicleUpdate, VehicleStatus
 )
 from app.models.vehicle import Vehicle
 from fastapi import HTTPException, status
@@ -45,23 +45,54 @@ def get_all_vehicles(current_driver: Driver, db: Session):
     return vehicles
 
 def choose_vehicle(vehicle_id: int, driver_id: int, db: Session):
+    # 1. Buscar veículo
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-
     if not vehicle:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Vehicle not found'
         )
     
+    # 2. Validar propriedade
     if vehicle.driver_id != driver_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='You do not have permission to choose this vehicle'
         )
-    vehicle.status = 'active'
-
-    return vehicle
-
+    
+    # 3. Validar se já está ativo
+    if vehicle.status == VehicleStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Vehicle is already active'
+        )
+    
+    # 4. Validar se pode ser ativado
+    if vehicle.status == VehicleStatus.UNDER_REVIEW:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Vehicle is under review and cannot be activated'
+        )
+    
+    # 5. Desativar outros veículos do motorista (se necessário)
+    db.query(Vehicle).filter(
+        Vehicle.driver_id == driver_id,
+        Vehicle.status == VehicleStatus.ACTIVE
+    ).update({Vehicle.status: VehicleStatus.INACTIVE})
+    
+    # 6. Ativar o veículo
+    vehicle.status = VehicleStatus.ACTIVE
+    
+    try:
+        db.commit()
+        db.refresh(vehicle)
+        return vehicle
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='Failed to activate vehicle'
+        )
 
 def update_vehicle(vehicle_id: int, vehicle_data: VehicleUpdate, driver_id: int, db: Session):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
