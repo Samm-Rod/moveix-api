@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import os
+from fastapi import status
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +15,7 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         
         # Configurações do middleware
-        self.protected_prefixes = {
-            "/clients",
-            "/drivers",  
+        self.protected_prefixes = {  
             "/ride",
             "/vehicles",
             "/maps",
@@ -24,7 +23,8 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
         }
         
         self.excluded_paths = {
-            "/",
+            "/clients",
+            "/drivers"
             "/health",
             "/favicon.ico",
             "/openapi.json",
@@ -150,7 +150,7 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
         if not self._check_rate_limit(client_ip):
             self._log_security_event("RATE_LIMIT_EXCEEDED", request)
             return JSONResponse(
-                status_code=429,
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={"detail": "Rate limit exceeded. Try again later."}
             )
         
@@ -165,7 +165,7 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
                     f"Missing or invalid auth token"
                 )
                 return JSONResponse(
-                    status_code=401,
+                    status_code=status.HTTP_401_UNAUTHORIZED,
                     content={
                         "detail": "Esta API é restrita. Acesso não autorizado será registrado.",
                         "error_code": "UNAUTHORIZED_ACCESS"

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.services.client import (
@@ -18,6 +19,7 @@ from app.models.client import Client
 
 
 router = APIRouter()
+security = HTTPBearer()
 
 @router.post('/', response_model=ClientResponse)
 def create_client(
@@ -31,7 +33,7 @@ def create_client(
 # Rota privada - apenas cliente autenticado pode acessar
 @router.get('/me', response_model=ClientResponse)
 def get_me(
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'client':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
@@ -42,7 +44,7 @@ def get_me(
 @router.put('/me', response_model=ClientResponse)
 def update_me(
     client_data: ClientUpdate,
-    current_user = Depends(get_current_user),
+    current_user = Depends(security),
     db: Session = Depends(get_db)
 ):
     if current_user['role'] != 'client':
@@ -54,7 +56,7 @@ def update_me(
 # Rota para deletar sua conta
 @router.delete('/me', response_model=ClientDeleteResponse)
 def delete_me(
-    current_user = Depends(get_current_user),
+    current_user = Depends(security),
     db: Session = Depends(get_db)
 ):
     if current_user['role'] != 'client':

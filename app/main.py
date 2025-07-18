@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status 
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import client, driver, login, ride, vehicle, locations, payments
@@ -57,8 +57,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(RestrictAPIMiddleware)
-
 # Rota base
 @app.get('/')
 def read_root():
@@ -77,7 +75,11 @@ def health_check():
 @app.post('/auth/test-token')
 def get_test_token():
     if ENVIRONMENT != "development":
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Not found num deu!"
+        )
+
     
     return {
         "access_token": "test-token-for-swagger-development-only",

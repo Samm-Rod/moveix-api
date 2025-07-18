@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
+from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.utils.hashing import verify_password
@@ -18,6 +17,7 @@ from app.services.auth import (
 from app.auth.dependencies import get_current_user
 
 router = APIRouter()
+security = HTTPBearer()
 
 @router.post('/login', response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -44,7 +44,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     )
 
 @router.post('/2fa/start')
-async def start_2fa(request: ForgotPasswordRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+async def start_2fa(request: ForgotPasswordRequest, db: Session = Depends(get_db), current_user = Depends(security)):
     user = get_user_by_email(request.email, db)
     if not current_user or user.id != current_user['user'].id:
         raise HTTPException(
@@ -55,7 +55,7 @@ async def start_2fa(request: ForgotPasswordRequest, db: Session = Depends(get_db
     return {'message': 'Código 2FA enviado'}
 
 @router.post('/2fa/validate')
-def validate_2fa(request: TwoFAValidateRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def validate_2fa(request: TwoFAValidateRequest, db: Session = Depends(get_db), current_user = Depends(security)):
     # Agora o e-mail vem do body do request
     user = get_user_by_email(str(request.email), db)
     if not user:

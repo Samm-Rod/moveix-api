@@ -59,7 +59,10 @@ class DriverList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class DriverResponse(BaseModel):
-    driver: Driver
+    driver_id: int
+    access_token: str
+    token_type: str
+    message: str
 
     model_config = ConfigDict(from_attributes=True)
 

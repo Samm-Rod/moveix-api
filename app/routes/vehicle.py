@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.auth.dependencies import get_current_user
@@ -10,12 +11,13 @@ from app.schemas.vehicle import (
 )
 
 router = APIRouter()
+security = HTTPBearer()
 
 @router.post('/', response_model=VehicleResponse)
 def new_vehicle(
     vehicle: VehicleCreate, 
     db: Session = Depends(get_db), 
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=403, detail='Apenas motoristas podem cadastrar veículos')
@@ -25,7 +27,7 @@ def new_vehicle(
 @router.get('/', response_model=VehicleList)
 def get_all_veh(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=403, detail='Apenas motoristas podem visualizar veículos')
@@ -37,7 +39,7 @@ def edit_data_veh(
     vehicle_id: int,
     vehicle_data: VehicleUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=403, detail='Apenas motoristas podem editar veículos')
@@ -48,7 +50,7 @@ def edit_data_veh(
 def remove_vehicle(
     vehicle_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=403, detail='Apenas motoristas podem remover veículos')
@@ -59,7 +61,7 @@ def remove_vehicle(
 def choose_vehicle_route(
     vehicle_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     # Apenas validação de autenticação/autorização básica
     if current_user['role'] != 'driver':

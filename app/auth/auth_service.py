@@ -1,3 +1,4 @@
+# app/auth/auth_service.py
 from datetime import timedelta, datetime
 from jose import jwt 
 from app.utils.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES

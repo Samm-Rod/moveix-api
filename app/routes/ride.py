@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.ride import Ride
@@ -30,7 +31,7 @@ from app.schemas.ride import (
 
 
 router = APIRouter()
-
+security = HTTPBearer()
 
 
 @router.get('/quote', response_model=RideQuoteResponse)
@@ -38,7 +39,7 @@ async def quote(
     origin: str = Query(..., description="Endereço de partida"),
     destination: str = Query(..., description="Endereço de destino"),
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     return await calculator_ride(origin, destination, db, current_user)
 
@@ -47,7 +48,7 @@ async def quote(
 def book_ride(
     booking: RideResponse,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(security)
 ):
     ride_data = booking.model_dump(by_alias=True)
     ride_data["client_id"] = current_user["user"].id
@@ -58,7 +59,7 @@ def book_ride(
 @router.get("/available", response_model=RideList)
 def list_available_rides(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user["role"] != "driver":
         raise HTTPException(
@@ -72,7 +73,7 @@ def list_available_rides(
 def accept_ride(
     ride_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user["role"] != "driver":
         raise HTTPException(
@@ -85,7 +86,7 @@ def accept_ride(
 @router.get("/my-rides", response_model=RideList)
 def get_driver_rides(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user["role"] != "driver":
         raise HTTPException(
@@ -98,7 +99,7 @@ def get_driver_rides(
 @router.get('/my_ratings', response_model=List[RideRatingOut])
 def get_rate_by_driver(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(
@@ -111,7 +112,7 @@ def get_rate_by_driver(
 @router.get("/my-history", response_model=RideList)
 def get_client_ride_history(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user["role"] != "client":
         raise HTTPException(
@@ -124,7 +125,7 @@ def get_client_ride_history(
 @router.get("/current-ride", response_model=RideResponse)
 def get_current_ride(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user["role"] != "client":
         raise HTTPException(
@@ -142,7 +143,7 @@ def get_current_ride(
 def cancel_ride_route(
     ride_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     user_id = current_user["user"].id
     role = current_user["role"]

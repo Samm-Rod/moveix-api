@@ -1,27 +1,35 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.driver import DriverCreate, Driver, DriverUpdate, DriverResponse
+from app.schemas.driver import DriverCreate, DriverUpdate, DriverResponse
+from app.auth.auth_service import create_access_token
 from app.services.driver import (
     new_driver_service,
-    get_driver_by_id,
     update_driver_service,
     delete_driver_service,
 )
-from app.auth.dependencies import get_current_user
 
 router = APIRouter()
+security = HTTPBearer()
 
 # Criar motorista
 @router.post('/', response_model=DriverResponse)
 def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
     driver = new_driver_service(driver, db)
-    return {'driver': driver}
+    token = create_access_token({"sub": str(driver.id)})
+    return {
+        'driver_id': driver.id,  # O modelo espera este campo
+        'access_token': token,
+        'token_type': 'bearer',
+        'message': 'Driver successfully registered!'
+    }
+    
 
 # Obter dados do próprio motorista
 @router.get('/me', response_model=DriverResponse)
 def read_current_driver(
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
@@ -32,7 +40,7 @@ def read_current_driver(
 def update_driver(
     driver_data: DriverUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
@@ -43,7 +51,7 @@ def update_driver(
 @router.delete('/', response_model=dict)
 def delete_driver(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
