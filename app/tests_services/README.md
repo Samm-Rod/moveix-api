@@ -28,7 +28,7 @@ Testa todas as funções de negócio da aplicação:
 - ✅ Operações específicas de corrida (aceitar, iniciar, finalizar)
 
 ### 2. Testes de Routes (`test_routes.py`)
-Testa todos os endpoints da API:
+Testa todos os endpoints da app:
 - ✅ Endpoints de clientes (CRUD completo)
 - ✅ Endpoints de motoristas (CRUD completo)
 - ✅ Endpoints de veículos (CRUD completo)
@@ -41,7 +41,7 @@ Testa todos os endpoints da API:
 ### 3. Testes de Integração (`test_integration.py`)
 Testa fluxos completos da aplicação:
 - ✅ Fluxo completo de corrida (cliente → motorista → veículo → corrida → pagamento)
-- ✅ Registro e login via API
+- ✅ Registro e login via app
 - ✅ Cenários de erro e validação
 - ✅ Testes de performance básicos
 

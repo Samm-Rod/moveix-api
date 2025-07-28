@@ -44,14 +44,10 @@ def new_client(client_data: ClientCreate, db: Session):
         db.refresh(db_client)
 
         # Gera token JWT
-        access_token = create_access_token(data={"sub": str(db_client.id)})
+        # access_token = create_access_token(data={"sub": str(db_client.id)})
 
-        return {
-            "client": db_client,
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
-
+        return db_client 
+    
     except Exception as e:
         db.rollback()
         raise HTTPException(

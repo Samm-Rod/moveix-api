@@ -9,7 +9,7 @@ from datetime import datetime
 from app.utils.config import settings
 import httpx
 
-GOOGLE_API_KEY = settings.GOOGLE_MAPS_API_KEY
+GOOGLE_app_KEY = settings.GOOGLE_MAPS_app_KEY
 
 """
  -> Nova corrida;
@@ -118,15 +118,15 @@ async def calculator_ride(origin: str, destination: str, db: Session, current: d
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Apenas clientes podem simular corridas'
         )
-    
+
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                'https://maps.googleapis.com/maps/api/directions/json',
+                'https://maps.googleapps.com/maps/app/directions/json',
                 params={
                     'origin': origin,
                     'destination': destination,
-                    'key': GOOGLE_API_KEY
+                    'key': GOOGLE_app_KEY
                 },
                 timeout=10
             )
@@ -171,7 +171,7 @@ async def calculator_ride(origin: str, destination: str, db: Session, current: d
     except httpx.RequestError as e:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f'Erro ao conectar com API do Google: {e}'
+            detail=f'Erro ao conectar com app do Google: {e}'
         )
 
 def get_rides_by_client(client_id: int, db: Session):

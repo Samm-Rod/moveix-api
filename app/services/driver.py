@@ -36,7 +36,8 @@ def new_driver_service(driver_data: DriverCreate, db: Session):
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Driver already exists with this CPF"
         )
-
+    
+    
     try:
         data = driver_data.model_dump()
         data['hashed_password'] = hash_password(driver_data.password)
@@ -65,14 +66,16 @@ def new_driver_service(driver_data: DriverCreate, db: Session):
         db.add(db_driver)
         db.commit()
         db.refresh(db_driver)
+
         return db_driver
+    
     except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail=f"Error creating driver: {str(e)}"
         )
-    
+
 
 def get_driver_by_id(driver_id: int,  db: Session):
     driver = db.query(Driver).filter(Driver.id == driver_id).first()
@@ -82,7 +85,7 @@ def get_driver_by_id(driver_id: int,  db: Session):
             detail="Driver not found"
         )
     return driver
-    
+
 
 def update_driver_service(driver_id: int, driver_data: DriverUpdate, db: Session):
     driver = db.query(Driver).filter(Driver.id == driver_id).first()
@@ -115,7 +118,10 @@ def delete_driver_service(driver_id: int, db: Session):
 
 def start_2fa_for_driver(driver: Driver, db):
     if not driver:
-        raise HTTPException(status_code=404, detail="Motorista não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail='Driver not found !'
+        )
     # Corrige acesso ao valor real do campo
     secret = getattr(driver, 'two_fa_secret', None)
     if not secret:
@@ -127,6 +133,7 @@ def start_2fa_for_driver(driver: Driver, db):
     asyncio.run(send_2fa_code(str(driver.email), code))
     return True
 
+
 def validate_2fa_for_driver(driver: Driver, code: str) -> bool:
     secret = getattr(driver, 'two_fa_secret', None)
     if not driver or not secret:
@@ -136,7 +143,10 @@ def validate_2fa_for_driver(driver: Driver, code: str) -> bool:
 def forgot_password_driver(email: str, db):
     driver = db.query(Driver).filter(Driver.email == email).first()
     if not driver:
-        raise HTTPException(status_code=404, detail="Motorista não encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Driver not found !"
+        )
     code = ''.join(random.choices(string.digits, k=6))
     driver.reset_code = code
     db.commit()
@@ -147,7 +157,10 @@ def forgot_password_driver(email: str, db):
 def reset_password_driver(email: str, code: str, new_password: str, db):
     driver = db.query(Driver).filter(Driver.email == email).first()
     if not driver or driver.reset_code != code:
-        raise HTTPException(status_code=400, detail="Código inválido")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid code'
+        )
     driver.hashed_password = hash_password(new_password)
     driver.reset_code = None
     db.commit()

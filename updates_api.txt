@@ -51,11 +51,11 @@
 
 
 Version MVP V0.1
-+ API do google cloud -> maps -> directions .. [X]
++ app do google cloud -> maps -> directions .. [X]
 + Geolocalização = address -> latitude, longetude []
 + Geolocalização reversa = latitude, longetude -> address []
 + Tests no back-end []
-+ API de pagamento Asaas []
++ app de pagamento Asaas []
 + Front-end/Mobile -> react.js/react native []
 + Implementação da visualização do google_maps []
 + Tests com o Front-end []

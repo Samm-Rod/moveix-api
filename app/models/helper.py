@@ -1,22 +1,12 @@
-# app/models/drivers.py
-from sqlalchemy import Column, Integer, Float, Boolean, DateTime, String
+# app/models/helpers.py
+from sqlalchemy import Column, ForeignKey, Integer, Float, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
 from app.models.drivers_helpers import drivers_helpers
 
-"""
--> Cadastrar motorista:
-   - Nome completo
-   - Data de nascimento
-   - CPF
-   - E-mail
-   - Telefone
-   - Cidade e Estado
-"""
-
-class Driver(Base):
-    __tablename__ = 'drivers'
+class Helper(Base):
+    __tablename__ = 'helpers'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
@@ -36,18 +26,17 @@ class Driver(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
-    has_helpers = Column(Boolean, default=False, nullable=False)  # Tem ajudantes
-    helper_price = Column(Float, nullable=True)  # Valor do ajudante (opcional)
     is_blocked = Column(Boolean, default=False, nullable=False)  # Bloqueado
 
     two_fa_secret = Column(String, nullable=True)  # 2FA
     reset_code = Column(String, nullable=True)     # Código de reset de senha
 
-    # app/models/driver.py
-    rides = relationship("Ride", back_populates="driver", cascade="all, delete")  # se ride tiver driver_id
-    vehicles = relationship("Vehicle", back_populates="driver", cascade="all, delete")
-    
-    helpers = relationship("Helper",secondary=drivers_helpers ,back_populates="drivers")
+    # N:N drivers and Helpers
+    drivers = relationship("Driver", secondary=drivers_helpers, back_populates="helpers")
 
     def __repr__(self):
-        return f"<Driver(name={self.name}, email={self.email})>"
+        return f"<Helper(name={self.name}, email={self.email})>"
+
+
+
+

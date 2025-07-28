@@ -1,10 +1,10 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import date, datetime
-from typing import Optional, List
-from app.schemas.vehicle import Vehicle
-from app.schemas.helper import Helper
+from typing import Optional, List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.schemas.driver import Driver
 
-class DriverBase(BaseModel):
+class HelperBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     birth_date: date
@@ -17,19 +17,12 @@ class DriverBase(BaseModel):
     country: Optional[str] = None
     rating: Optional[float] = 5.0
     is_active: Optional[bool] = True   
-    has_helpers: bool = False
-    helper_price: Optional[float] = None
     is_blocked: Optional[bool] = False
 
-class DriverCreate(DriverBase):
+class HelperCreate(HelperBase):
     password: str
-    car_model: str
-    car_plate: str
-    car_color: str
-    driver_license: str
-    license_category: str
 
-class DriverUpdate(BaseModel): 
+class HelperUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     birth_date: Optional[date] = None
@@ -42,56 +35,43 @@ class DriverUpdate(BaseModel):
     country: Optional[str] = None
     rating: Optional[float] = None
     is_active: Optional[bool] = None  
-    has_helpers: Optional[bool] = None
-    helper_price: Optional[float] = None
     is_blocked: Optional[bool] = None
 
-class Driver(DriverBase):
+class Helper(HelperBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    vehicles: List[Vehicle] = []
+    Drivers: List["Driver"] = []  # 👈 aspas aqui
 
     model_config = ConfigDict(from_attributes=True)
 
-class DriverList(BaseModel):
-    drivers: List[Driver] = []
+class HelperList(Helper):
+    Helpers: List["Helper"] = []
 
     model_config = ConfigDict(from_attributes=True)
 
-# List Favorite Helpers - GetAll
-class favoriteHelper(BaseModel):
-    helpers: List[Helper] = []
 
-    model_config = ConfigDict(from_attributes=True)
-
-# Add Favorite Helper
-class addFavoriteHelper(BaseModel):
+class HelperResponse(BaseModel):
     helper_id: int
-
-# Delete Favorite Helper
-class deleteFavoriteHelper(BaseModel):
-    helper_id: int
-
-class DriverResponse(BaseModel):
-    driver_id: int
     access_token: str
     token_type: str
     message: str
 
     model_config = ConfigDict(from_attributes=True)
 
-class DriverDeleteResponse(BaseModel):
+
+class HelperDeleteResponse(BaseModel):
     message: str
 
     model_config = ConfigDict(from_attributes=True)
 
-class DriverLogin(BaseModel):
+class HelperLogin(BaseModel):
     email: EmailStr
     password: str
 
     model_config = ConfigDict(from_attributes=True)
 
-class DriverLoginResponse(BaseModel):
+class HelperLoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+

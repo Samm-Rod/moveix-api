@@ -3,45 +3,70 @@ from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.utils.hashing import verify_password
-from app.auth.auth_service import create_access_token
+from app.auth.auth_service import create_access_token, create_refresh_token, add_token_to_blacklist
+from app.auth.dependencies import get_current_user
 from app.models.client import Client
 from app.models.driver import Driver
+from app.models.helper import Helper
+
 from app.schemas.auth import Token, ForgotPasswordRequest, ResetPasswordRequest, TwoFAValidateRequest
 from app.services.auth import (
     get_user_by_email,
     start_2fa_for_user,
     validate_2fa_for_user,
     forgot_password_user,
-    reset_password_user
+    reset_password_user,
+
 )
-from app.auth.dependencies import get_current_user
 
 router = APIRouter()
 security = HTTPBearer()
 
 @router.post('/login', response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Primeiro tenta como cliente
-    user = db.query(Client).filter(Client.email == form_data.username).first()
-    if user and verify_password(form_data.password, user.hashed_password):
-        return {
-            "access_token": create_access_token(data={"sub": str(user.id), "role": "client"}),
-            "token_type": "bearer"
-        }
-
-    # Depois tenta como driver
-    user = db.query(Driver).filter(Driver.email == form_data.username).first()
-    if user and verify_password(form_data.password, user.hashed_password):
-        print(f"User: {user}")
-        return {
-            "access_token": create_access_token(data={"sub": str(user.id), "role": "driver"}),
-            "token_type": "bearer"
-        }
-    print(f"User: {user}")
+    # Lista de modelos e roles
+    user_types = [
+        (Client, 'client'),
+        (Driver, 'driver'),
+        (Helper, 'helper')
+    ]
+    for model, role in user_types:
+        user = db.query(model).filter(model.email == form_data.username).first()
+        if user and verify_password(form_data.password, user.hashed_password):
+            access_token = create_access_token(data={'sub': str(user.id), 'role': role})
+            refresh_token = create_refresh_token(data={'sub': str(user.id), 'role': role})
+            return {
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'token_type': 'bearer'
+            }
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, 
-        detail="Invalid credentials"
+        detail='Invalid credentials'
     )
+
+@router.post('/logout')
+def logout(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    """
+    Faz logout do usuário adicionando o token à blacklist
+    """
+    try:
+        # Adiciona o token atual à blacklist
+        add_token_to_blacklist(
+            token=current_user["token"],
+            user_id=current_user["user_id"],
+            user_role=current_user["role"],
+            expires_at=current_user["expires_at"],
+            db=db
+        )
+        
+        return {"message": "Logout realizado com sucesso"}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erro ao fazer logout: {str(e)}"
+        )
 
 @router.post('/2fa/start')
 async def start_2fa(request: ForgotPasswordRequest, db: Session = Depends(get_db), current_user = Depends(security)):

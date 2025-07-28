@@ -6,9 +6,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict  # Corrigido para
 load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key')
+REFRESH_SECRET_KEY = os.getenv('REFRESH_KEY', 'default-secret-key')
 ALGORITHM = os.getenv('ALGORITHM','HS256')
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '1440'))
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_API_KEY', 'default-google-maps-api-key')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30'))
+REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days 
+GOOGLE_MAPS_app_KEY = os.getenv('GOOGLE_app_KEY', 'default-google-maps-app-key')
 
 class Settings(BaseSettings):
     POSTGRES_USER: str = os.getenv('POSTGRES_USER', 'postgres')
@@ -30,8 +32,8 @@ class Settings(BaseSettings):
     MAIL_FROM_NAME: str = os.getenv('MAIL_FROM_NAME', '')
     MAIL_STARTTLS: str = os.getenv('MAIL_STARTTLS', 'True')
     MAIL_SSL_TLS: str = os.getenv('MAIL_SSL_TLS', 'False')
-    GOOGLE_API_KEY: str = GOOGLE_MAPS_API_KEY
-    GOOGLE_MAPS_API_KEY: str = GOOGLE_MAPS_API_KEY
+    GOOGLE_app_KEY: str = GOOGLE_MAPS_app_KEY
+    GOOGLE_MAPS_app_KEY: str = GOOGLE_MAPS_app_KEY
 
 
     model_config = SettingsConfigDict(

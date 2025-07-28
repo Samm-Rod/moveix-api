@@ -2,20 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
+from app.auth.auth_service import create_access_token
 from app.services.client import (
     new_client, 
     get_update_client, 
     delete_client
 )
-from app.auth.dependencies import get_current_user
 from app.schemas.client import (
     ClientCreate, 
     ClientUpdate,
     ClientResponse,
     ClientDeleteResponse
 )
-from app.schemas.client import Client as ClientSchema
-from app.models.client import Client
+
 
 
 router = APIRouter()
@@ -23,11 +22,17 @@ security = HTTPBearer()
 
 @router.post('/', response_model=ClientResponse)
 def create_client(
-    client: ClientCreate, 
-    db: Session = Depends(get_db)
-):
-    created = new_client(client, db)
-    return {'client': ClientSchema.model_validate(created['client'])}
+        create_client: ClientCreate, 
+        db: Session = Depends(get_db)
+    ):
+    client = new_client(create_client, db)
+    token = create_access_token({'sub': str(client.id)})
+    return {
+        'client_id': client.id,
+        'access_token': token,
+        'token_type': 'bearer',
+        'message': 'Driver successfully registered!'
+    }
 
 
 # Rota privada - apenas cliente autenticado pode acessar

@@ -5,12 +5,12 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 
 ## 🛠️ Tecnologias
 
-- 🐍 Backend: FastAPI (Python)
+- 🐍 Backend: Fastapi (Python)
 - 🐘 Banco de dados: PostgreSQL
 - 🔐 Autenticação: JWT (JSON Web Tokens)
 - 🐳 Containerização: Docker
 - ☁️ Hospedagem: Railway claud
-- 🗺️ Geolocalização: API Google Maps Platforms
+- 🗺️ Geolocalização: app Google Maps Platforms
 - 🔁 Migração de dados: Alembic
 - 🗃️ Controle de versão: GitHub
 - 🔌 Comunicação em real-time: WebSockets( 🛠️ Em andamento)
@@ -23,7 +23,7 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 - 📦 Criação, visualização e gerenciamento de pedidos de frete
 - 🧾 Aceitação e finalização de corridas por motoristas
 - 💰 Sistema de pagamento integrado (a implementar)
-- 📘 API RESTful documentada com Swagger/OpenAPI
+- 📘 app RESTful documentada com Swagger/Openapp
 
 ## 🎯 Objetivo
 
@@ -34,16 +34,16 @@ Fornecer uma solução escalável, segura e eficiente para o mercado de mudança
 ## 💻 Como rodar localmente
 
 1. 📥 Clone o repositório:<br/>
-   + `git clone git@github.com:Samm-Rod/moveix-api.git`
+   + `git clone git@github.com:Samm-Rod/moveix-app.git`
 2. 🔧 Configure variáveis de ambiente para conexão com banco e JWT  
    + `python -m venv .venv`
    + `source .venv/bin/activate`
 3. ▶️ Execute com Docker Compose ou diretamente com `uvicorn`<br/>  
    + Docker: `docker compose up --build` <br/>
    + Uvicorn: `uvicorn main.app:main --reload`<br/> 
-4. 🔍 Acesse a API via `localhost` e utilize Swagger para testes
+4. 🔍 Acesse a app via `localhost` e utilize Swagger para testes
    + Link: `http://127.0.0.1:8000/` ou `http://localhost:8000/`
-5. 🔍 Para manibular as feature vá até o Swagger do FastAPI
+5. 🔍 Para manibular as feature vá até o Swagger do Fastapi
    + Link: `http://127.0.0.1:8000/docs` ou `http://localhost:8000/docs` 
 
 ---

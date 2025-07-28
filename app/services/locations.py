@@ -11,8 +11,8 @@ from app.models.ride import Ride
 from app.schemas.locations import LocationCreate
 
 
-GOOGLE_API_KEY = settings.GOOGLE_MAPS_API_KEY
-BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
+GOOGLE_app_KEY = settings.GOOGLE_MAPS_app_KEY
+BASE_URL = "https://maps.googleapps.com/maps/app/geocode/json"
 
 
 # 🧭 Geocodificação (endereço → coordenadas) + salva no banco
@@ -52,7 +52,7 @@ async def geocodification(db: Session, current: dict):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{BASE_URL}",
-            params={'address': address,'key': GOOGLE_API_KEY}
+            params={'address': address,'key': GOOGLE_app_KEY}
         )
         data = response.json()
         print(data)
@@ -91,11 +91,11 @@ async def geocode_reverso(lat: float, long: float, db: Session, current: dict):
         async with httpx.AsyncClient(timeout=10) as client:
             resp = await client.get(
                 BASE_URL,
-                params={'latlng': f'{lat},{long}', 'key': GOOGLE_API_KEY}
+                params={'latlng': f'{lat},{long}', 'key': GOOGLE_app_KEY}
             )
             resp.raise_for_status()
     except httpx.RequestError as e:
-        raise HTTPException(502, f'Google API offline: {e}')
+        raise HTTPException(502, f'Google app offline: {e}')
 
     data = resp.json()
     if data.get('status') != 'OK':

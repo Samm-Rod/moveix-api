@@ -15,9 +15,12 @@ security = HTTPBearer()
 
 # Criar motorista
 @router.post('/', response_model=DriverResponse)
-def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
-    driver = new_driver_service(driver, db)
-    token = create_access_token({"sub": str(driver.id)})
+def create_driver(
+        create_driver: DriverCreate, 
+        db: Session = Depends(get_db)
+):
+    driver = new_driver_service(create_driver, db)
+    token = create_access_token({'sub': str(driver.id)})
     return {
         'driver_id': driver.id,  # O modelo espera este campo
         'access_token': token,
@@ -25,14 +28,16 @@ def create_driver(driver: DriverCreate, db: Session = Depends(get_db)):
         'message': 'Driver successfully registered!'
     }
     
-
 # Obter dados do próprio motorista
 @router.get('/me', response_model=DriverResponse)
 def read_current_driver(
     current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Access permitted only for drivers'
+        )
     return {'driver': current_user['user']}
 
 # Atualizar dados do próprio motorista
@@ -43,7 +48,10 @@ def update_driver(
     current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Access permitted only for drivers'
+        )
     updated_driver = update_driver_service(current_user['user'].id, driver_data, db)
     return {'driver': updated_driver}
 
@@ -54,6 +62,9 @@ def delete_driver(
     current_user = Depends(security)
 ):
     if current_user['role'] != 'driver':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para motoristas')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Access permitted only for drivers'
+        )
     delete_driver_service(current_user['user'].id, db)
-    return {'message': 'Conta deletada com sucesso'}
+    return {'message': 'Account deleted successfully'}

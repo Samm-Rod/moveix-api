@@ -47,8 +47,10 @@ class ClientList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ClientResponse(BaseModel):    
-    client: Client
-    role: str = "client"  # Adicione isso se for relevante
+    client_id: int
+    access_token: str
+    token_type: str
+    message: str
 
     model_config = ConfigDict(from_attributes=True)
 

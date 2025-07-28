@@ -2,17 +2,17 @@ import os
 from fastapi import FastAPI, HTTPException, status 
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import client, driver, login, ride, vehicle, locations, payments
-from app.middleware.security_middleware import RestrictAPIMiddleware
+from app.routes import client, driver, login, ride, vehicle, locations, payments, helper
+from app.middleware.security_middleware import RestrictappMiddleware
 
 # Definir se está em desenvolvimento
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
-# Configurar FastAPI baseado no ambiente
+# Configurar Fastapi baseado no ambiente
 if ENVIRONMENT == "development":
     app = FastAPI(
-        title="Moveix API",
-        description="API para o aplicativo Moveix",
+        title="Moveix api",
+        description="api para o aplicativo Moveix",
         version="1.0.0",
         # Configurar autenticação no Swagger
         swagger_ui_parameters={
@@ -24,8 +24,8 @@ else:
     app = FastAPI(
         docs_url=None, 
         redoc_url=None,
-        title="Moveix API",
-        description="API para o aplicativo Moveix", 
+        title="Moveix api",
+        description="api para o aplicativo Moveix", 
         version="1.0.0"
     )
 
@@ -33,7 +33,7 @@ else:
 security = HTTPBearer()
 
 # Middleware de segurança personalizada
-app.add_middleware(RestrictAPIMiddleware)
+app.add_middleware(RestrictappMiddleware)
 
 # CORS para desenvolvimento e mobile apps
 cors_origins = [
@@ -90,8 +90,13 @@ def get_test_token():
 # Rotas com dependência de segurança explícita
 app.include_router(client.router, prefix='/clients', tags=['Clients'])
 app.include_router(driver.router, prefix='/drivers', tags=['Drivers'])
+app.include_router(helper.router, prefix='/helpers', tags=['Helpers'])
+
 app.include_router(ride.router, prefix='/ride', tags=['Rides'])
 app.include_router(vehicle.router, prefix='/vehicles', tags=['Vehicles'])
+
 app.include_router(locations.router, prefix='/maps', tags=['Maps'])
+
 app.include_router(payments.router, prefix='/payments', tags=['Payments'])
+
 app.include_router(login.router, prefix='/auth', tags=['Auth'])

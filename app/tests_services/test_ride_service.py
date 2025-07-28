@@ -237,8 +237,8 @@ class TestCalculatorRide:
         assert "apenas clientes" in exc_info.value.detail.lower()
     
     @pytest.mark.asyncio
-    async def test_calculator_ride_google_api_error(self, db_session, current_client):
-        """Testa erro da API do Google"""
+    async def test_calculator_ride_google_app_error(self, db_session, current_client):
+        """Testa erro da app do Google"""
         mock_response = {"status": "NOT_FOUND"}
         
         with patch('app.services.ride.httpx.AsyncClient') as mock_client:

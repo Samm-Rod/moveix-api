@@ -10,7 +10,7 @@ from fastapi import status
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class RestrictAPIMiddleware(BaseHTTPMiddleware):
+class RestrictappMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         
@@ -24,13 +24,14 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
         
         self.excluded_paths = {
             "/clients",
-            "/drivers"
+            "/drivers",  # ← VÍRGULA CORRIGIDA
+            "/helpers",
             "/health",
             "/favicon.ico",
-            "/openapi.json",
+            "/openapp.json",
             "/docs",
             "/redoc",
-            "/auth",
+            "/auth",  # ← Isso inclui /auth/logout
             "/static"
         }
         
@@ -47,13 +48,13 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
     def _is_excluded_path(self, path: str) -> bool:
         """Verifica se o path está nas rotas excluídas"""
         # Verifica caminhos exatos
-        if path in {"/", "/health", "/favicon.ico", "/openapi.json"}:
+        if path in {"/", "/health", "/favicon.ico", "/openapp.json"}:
             return True
         
-        # Verifica prefixos de caminho
+        # Verifica prefixos de caminho - CORRIGIDO para incluir /auth
         return any(
             path.startswith(excluded_path)
-            for excluded_path in {"/docs", "/redoc", "/auth", "/static"}
+            for excluded_path in {"/docs", "/redoc", "/auth", "/static", "/clients", "/drivers", "helpers"}
         )
     
     def _is_protected_path(self, path: str) -> bool:
@@ -111,36 +112,45 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
         )
     
     def _validate_auth_token(self, auth_header: str) -> bool:
-        """Validação básica do token"""
+        """Validação básica do token - MELHORADA"""
         if not auth_header or not auth_header.startswith("Bearer "):
             return False
         
         token = auth_header.replace("Bearer ", "").strip()
         
+        # Remove Bearer duplo se existir
+        if token.startswith("Bearer "):
+            token = token.replace("Bearer ", "").strip()
+        
         # Em desenvolvimento, aceitar token de teste
         if self.environment == "development" and token == "test-token-for-swagger-development-only":
             return True
         
-        # Validações básicas
+        # Validações básicas melhoradas
         if len(token) < 10:  # Token muito curto
             return False
         
-        # Aqui você pode adicionar validações mais complexas
+        # Verificar se parece com um JWT (formato básico)
+        parts = token.split('.')
+        if len(parts) != 3:  # JWT tem 3 partes separadas por pontos
+            return False
+        
         return True
     
     async def dispatch(self, request: Request, call_next):
         client_ip = self._get_client_ip(request)
         path = request.url.path
         
+        # Em desenvolvimento, liberar docs e ferramentas
         if self.environment == "development":
-            if any(path.startswith(p) for p in ["/docs", "/redoc", "/openapi.json", "/static"]):
+            if any(path.startswith(p) for p in ["/docs", "/redoc", "/openapp.json", "/static"]):
                 return await call_next(request)
 
         # Log para debug em desenvolvimento
         if self.environment == "development":
             logger.info(f"Processing request to {path} from {client_ip}")
         
-        # 1. Permite rotas públicas
+        # 1. Permite rotas públicas (INCLUI /auth/*)
         if self._is_excluded_path(path):
             if self.environment == "development":
                 logger.info(f"Path {path} is excluded from security checks")
@@ -167,7 +177,7 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     content={
-                        "detail": "Esta API é restrita. Acesso não autorizado será registrado.",
+                        "detail": "Esta app é restrita. Acesso não autorizado será registrado.",
                         "error_code": "UNAUTHORIZED_ACCESS"
                     }
                 )
@@ -177,15 +187,16 @@ class RestrictAPIMiddleware(BaseHTTPMiddleware):
             user_agent = request.headers.get("User-Agent", "")
             suspicious_agents = ["curl", "wget", "python-requests", "bot", "crawler"]
             
-            if any(agent in user_agent.lower() for agent in suspicious_agents):
+            # Em produção, permitir curl para testes de app legítimos
+            if any(agent in user_agent.lower() for agent in suspicious_agents[3:]):  # Só bot e crawler
                 self._log_security_event("SUSPICIOUS_USER_AGENT", request, f"User-Agent: {user_agent}")
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "Access forbidden"}
                 )
             
-            # Verificar Content-Type para requests POST/PUT
-            if request.method in ["POST", "PUT", "PATCH"]:
+            # Verificar Content-Type para requests POST/PUT (exceto auth)
+            if request.method in ["POST", "PUT", "PATCH"] and not path.startswith("/auth"):
                 content_type = request.headers.get("Content-Type", "")
                 if not content_type.startswith("application/json"):
                     self._log_security_event("INVALID_CONTENT_TYPE", request, f"Content-Type: {content_type}")
