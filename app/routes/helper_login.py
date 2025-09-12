@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session 
 from app.db.database import get_db
-from app.schemas.auth import Token
+from app.schemas.auth import tokens
 from app.services.auth_helper import authenticate_helper
-from app.auth.auth_service import create_access_token
+from app.auth.auth_service import create_access_tokens
 import logging
 import sys
 
@@ -26,7 +26,7 @@ if not logger.handlers:
 
 router = APIRouter()
 
-@router.post('/login', response_model=Token)
+@router.post('/login', response_model=tokens)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     logger.debug("="*50)
     logger.debug("INICIANDO TENTATIVA DE LOGIN DE HELPER")
@@ -39,9 +39,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         # Log do resultado da autenticação
         if helper:
             logger.info(f"Helper autenticado com sucesso: ID={helper.id}, Email={helper.email}")
-            access_token = create_access_token(data={'sub':str(helper.id), 'role': 'helper'})
-            logger.debug("Token criado com sucesso")
-            return {'access_token': access_token, 'token_type': 'bearer'}
+            access_tokens = create_access_tokens(data={'sub':str(helper.id), 'role': 'helper'})
+            logger.debug("tokens criado com sucesso")
+            return {'access_tokens': access_tokens, 'tokens_type': 'bearer'}
         else:
             logger.warning(f"Falha na autenticação para o email: {form_data.username}")
             raise HTTPException(

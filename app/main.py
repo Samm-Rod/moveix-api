@@ -2,7 +2,12 @@ import os
 from fastapi import FastAPI, HTTPException, status 
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import client, driver, login, ride, vehicle, locations, payments, helper
+from app.routes import (
+    client, driver, login, ride, vehicle, locations,
+    payments, helper, onboarding, shipments, quotes, trip_request, ratings,
+    matching
+
+)
 from app.middleware.security_middleware import RestrictappMiddleware
 
 # Definir se está em desenvolvimento
@@ -11,8 +16,8 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 # Configurar Fastapi baseado no ambiente
 if ENVIRONMENT == "development":
     app = FastAPI(
-        title="Moveix api",
-        description="api para o aplicativo Moveix",
+        title="Moveix API",
+        description="API para o aplicativo Moveix api/v1",
         version="1.0.0",
         # Configurar autenticação no Swagger
         swagger_ui_parameters={
@@ -24,8 +29,8 @@ else:
     app = FastAPI(
         docs_url=None, 
         redoc_url=None,
-        title="Moveix api",
-        description="api para o aplicativo Moveix", 
+        title="Moveix API",
+        description="API para o aplicativo Moveix api/v1",
         version="1.0.0"
     )
 
@@ -71,9 +76,9 @@ def health_check():
         'swagger_enabled': ENVIRONMENT == "development"
     }
 
-# Endpoint para obter token de teste (apenas em desenvolvimento)
-@app.post('/auth/test-token')
-def get_test_token():
+# Endpoint para obter tokens de teste (apenas em desenvolvimento)
+@app.post('/auth/test-tokens')
+def get_test_tokens():
     if ENVIRONMENT != "development":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -82,9 +87,9 @@ def get_test_token():
 
     
     return {
-        "access_token": "test-token-for-swagger-development-only",
-        "token_type": "bearer",
-        "message": "Este é um token de teste para usar no Swagger"
+        "access_tokens": "test-tokens-for-swagger-development-only",
+        "tokens_type": "bearer",
+        "message": "Este é um tokens de teste para usar no Swagger"
     }
 
 # Rotas com dependência de segurança explícita
@@ -93,10 +98,18 @@ app.include_router(driver.router, prefix='/drivers', tags=['Drivers'])
 app.include_router(helper.router, prefix='/helpers', tags=['Helpers'])
 
 app.include_router(ride.router, prefix='/ride', tags=['Rides'])
+app.include_router(shipments.router, prefix='/shipments', tags=['Shipments'])
+app.include_router(trip_request.router, prefix='/request', tags=['Request_Ride'])
+app.include_router(matching.route, prefix='/matching', tags=['Matching'])
+
+app.include_router(ratings.router, prefix='/ratings', tags=['Ratings'])
+app.include_router(quotes.router, prefix='/quotes', tags=['Quotes'])
 app.include_router(vehicle.router, prefix='/vehicles', tags=['Vehicles'])
+
 
 app.include_router(locations.router, prefix='/maps', tags=['Maps'])
 
 app.include_router(payments.router, prefix='/payments', tags=['Payments'])
 
 app.include_router(login.router, prefix='/auth', tags=['Auth'])
+app.include_router(onboarding.route, prefix="/onboarding", tags=["Onboarding"])

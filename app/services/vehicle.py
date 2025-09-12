@@ -109,8 +109,8 @@ def update_vehicle(vehicle_id: int, vehicle_data: VehicleUpdate, driver_id: int,
             detail='You do not have permission to update this vehicle'
         )
 
-    
-    for field, value in vehicle_data.model_dump(exclude_unset=True).items():
+    update_data = vehicle_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
         setattr(vehicle, field, value)
 
     db.commit()

@@ -1,0 +1,116 @@
+*Comandos essenciais para rodar e testar partes do projeto
+%-------- CONTAINER DO MOVEIX -------%
+PARA RODAR O PROJETO
+-> docker compose up --build
+
+PARA RODAR O PROJETO EM SEGUNDO PLANO
+-> docker compose up -d --build
+
+PARA MATAR TODAS AS APLICAÇÕES DO SEU DOCKER
+-> docker compose down
+
+PARA VER AS IMAGENS/CONTAINERS SENDO RODADAS NO MOMENTO
+-> docker ps
+
+PARA VER AS IMAGENS/CONTAINERS QUE JÁ RODARAM
+-> docker ps -a
+
+PARA LIMPAR TUDO ATÉ VOLUMES E IMAGENS
+-> docker down --volumes --rmi all
+
+PARA VER LOGS EM TEMPO REAL
+-> docker compose logs -f fastapi_app
+
+REINICIAR SERVIÇO FASTAPI SEM REBUILD
+-> docker compose restart fastapi_app
+
+PARA ACESSAR SHELL DO CONTAINER FASTAPI(útil para debug)
+-> docker exec -it fastapi_app bash
+
+PARA RODAR TESTES DENTRO DO CONTAINER(se usar pytest)
+-> docker exec -it fastapi_app pytest
+
+
+%------- ALEMBIC NO DOCKER ---------%
+PARA FAZER MIGRAÇÃO/MANIPULAÇÃO DE TABELAS NO BANCO DE DADOS VIA ALEMBIC MIGRAÇÃO AUTOMÁTICAS == COMMIT ALEMBIC
+->  docker exec -it fastapi_app alembic revision --autogenerate -m "<Escreva sobre sua alteração>"
+
+PARA SUBIR A MIGRAÇÃO PARA O BANCO
+->  docker exec -it fastapi_app alembic upgrade head
+
+PARA CRIAR NOVA REVISÃO/MIGRAÇÃO (gera arquivo em alembic/versions)
+-> alembic revision -m "descrição da alteração"
+
+PARA APLICAR APENAS UMA VERSÃO ESPECÍFICA
+-> alembic upgrade <id_da_migration>
+
+PARA VOLTAR UMA VERSÃO DO BANCO (rollback)
+-> alembic downgrade -1
+
+PARA VOLTAR ATÉ UMA VERSÃO ESPECÍFICA
+-> alembic downgrade <id_da_migration>
+
+PARA VER UMA VERSÃO ATUAL DO BANCO
+-> alembic current
+
+PARA VER O HISTÓRICO DO BANCO
+-> alembic history
+
+PARA MARCAR UMA VERSÃO ATUAL SEM RODAR MIGRATIONS (forçar sincronização)
+-> alembic stamp head
+
+
+
+%------- COMANDOS BÁSICOS GIT ---------%
+PARA INICIAR PROJETO COM GIT
+-> git init
+
+PARA VER STATUS DO ARQUIVO
+-> git status
+
+ADICIONAR ARQUIVOS PARA COMMIT
+-> git add <arquivo>         # adiciona um arquivo específico
+-> git add .                 # adiciona todos os arquivos modificados
+
+PARA CRIAR COMMITS
+-> git commit -m "mensagem do commit"
+
+PARA VER HISTÓRICOS DE COMMITS
+-> git log                   # detalhado
+
+PARA CRIAR E TROCAR DE BRANCH
+-> git log --oneline         # resumido
+-> git branch nova-branch    # cria nova branch
+-> git checkout nova-branch  # troca para a nova branch
+-> git switch nova-branch    # (forma mais moderna de trocar branch)
+
+PARA SUBIR ALTERAÇÃO PARA O REMOTO (git/gitlab)
+-> git push origin main      # sobe para branch main
+-> git push origin nome-da-branch
+
+PARA PUXAR ATUALIZAÇÕES DO REMOTO
+-> git pull origin main
+
+PARA CLONAR REPOSITÓRIOS
+-> git clone <url-do-repo>
+
+
+
+%------- IMAGEM DO POSTGRES ---------%
+ENTRAR NO CONTAINER POSTGRES
+-> docker exec -it postgres_db psql -U postgres -d postgres
+
+VER OS BANCOS CRIADOS
+-> \l
+
+SELECIONAR UM BANCO
+-> \c <nome-do-banco>
+
+VER AS TABELAS DESSE BANCO
+-> \dt
+
+QUERY PARA BUSCAR DADOS DE UMA TABELA NO BANCO
+-> SELECT * FROM <nome-da-tabela>
+
+
+

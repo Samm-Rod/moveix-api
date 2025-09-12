@@ -1,16 +1,16 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 from app.enums.enum_vehicles import LicenseCategory, VehicleStatus, VehicleSize
 
 class VehicleBase(BaseModel):
-    model: str
-    brand: str  # agora obrigatório
-    plate: str
+    model: str = Field(..., min_length=1)
+    brand: str = Field(..., min_length=1)
+    plate: str = Field(..., pattern=r"^[A-Z]{3}-\d{4}$", description="Formato: ABC-1234")
     color: Optional[str] = None
     license_category: LicenseCategory
     status: VehicleStatus
-    size: VehicleSize  # pequeno, médio, grande
+    size: VehicleSize
 
 class VehicleCreate(VehicleBase):
     pass  # driver_id removido, brand obrigatório
@@ -21,9 +21,9 @@ class VehicleUpdate(BaseModel):
     brand: Optional[str] = None
     plate: Optional[str] = None
     color: Optional[str] = None
-    license_category: LicenseCategory
-    status: VehicleStatus
-    size: VehicleSize
+    license_category: Optional[LicenseCategory] = None
+    status: Optional[VehicleStatus] = None
+    size: Optional[VehicleSize] = None
 
 class Vehicle(VehicleBase):
     id: int

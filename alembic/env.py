@@ -3,9 +3,20 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from alembic import context
+
+from app.models import *
+
 from app.db.database import Base
-from app.models import client, driver, vehicle, ride
+
+# from app.models import (
+#     Matching, Request, DriverOffer,
+#     SearchHelper, Driver, Client, Helper, TokensBlacklist,
+#     HelperMeta, HelperAuth, ClientMeta, ClientAuth, DriverMeta,
+#     DriverAuth, DriverServices, Location, Ride, drivers_helpers
+# )
+
+
+from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,6 +30,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -33,7 +45,7 @@ def run_migrations_offline() -> None:
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
     here as well.  By skipping the Engine creation
-    we don't even need a DBapp to be available.
+    we don't even need a DBAPI to be available.
 
     Calls to context.execute() here emit the given string to the
     script output.

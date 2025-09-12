@@ -1,18 +1,18 @@
 
 from datetime import datetime
-from app.models.token import TokenBlacklist
+from app.models.token import tokensBlacklist
 from app.db.database import SessionLocal
 
-def cleanup_expired_tokens():
-    """Remove tokens expirados da blacklist"""
+def cleanup_expired_tokenss():
+    """Remove tokenss expirados da blacklist"""
     db = SessionLocal()
     try:
-        expired_tokens = db.query(TokenBlacklist).filter(
-            TokenBlacklist.expires_at < datetime.now()
+        expired_tokenss = db.query(tokensBlacklist).filter(
+            tokensBlacklist.expires_at < datetime.now()
         )
-        count = expired_tokens.count()
-        expired_tokens.delete()
+        count = expired_tokenss.count()
+        expired_tokenss.delete()
         db.commit()
-        print(f"Removidos {count} tokens expirados da blacklist")
+        print(f"Removidos {count} tokenss expirados da blacklist")
     finally:
         db.close()

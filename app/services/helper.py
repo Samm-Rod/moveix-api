@@ -1,19 +1,20 @@
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status 
 from app.utils.hashing import hash_password
-from app.auth.two_f import generate_2fa_secret, send_2fa_code, generate_2fa_code, verify_2fa_code
+from app.auth.two_f import send_2fa_code, verify_2fa_code
 import random
 import string
-from datetime import datetime, date
+from datetime import datetime
 import asyncio
-from app.schemas.helper import HelperCreate, HelperList, HelperUpdate, HelperDeleteResponse
-from app.models.helper import Helper
+
+from app.schemas import HelperCreate, HelperList, HelperUpdate
+from app.models import Helper, HelperMeta, HelperAuth
 
 
 # Criar a service do Ajudante/Helper
-
 def create_helper(helper_data: HelperCreate, db: Session):
-    existing_email = db.query(Helper).filter(Helper.email == helper_data.email).first()
+    existing_email = db.query(Helper).filter(helper_data.email == Helper.email).first()
 
     if existing_email:
         raise HTTPException(
@@ -21,27 +22,28 @@ def create_helper(helper_data: HelperCreate, db: Session):
             detail="Helper already exists with this email"
         )
 
-
     try:
-        data = helper_data.model_dump()
-        data['hashed_password'] = hash_password(helper_data.password)
-        data.pop('password')
+        db_helper = Helper(
+            name=helper_data.name,
+            email=helper_data.email,
+            birth_date=helper_data.birth_date,
+            phone=helper_data.phone,
+            cpf=helper_data.cpf,
+            address=helper_data.address,
+            postal_code=helper_data.postal_code,
+            country=helper_data.country,
+            city=helper_data.city,
+            state=helper_data.state,
+            auth=HelperAuth(
+                hashed_password=hash_password(helper_data.password),
+                is_active=True,
+                is_blocked=False
+            ),
+            meta=HelperMeta(
+                rating=5.0
+            )
+        )
 
-        if isinstance(data.get('birth_date'), date) and not isinstance(data.get('birth_date'), datetime):
-            data['birth_date'] = datetime.combine(data['birth_date'], datetime.min.time())
-
-        if 'created_at' not in data:
-            data['created_at'] = datetime.now()
-        if 'updated_at' not in data:
-            data['updated_at'] = datetime.now()
-        if 'is_active' not in data:
-            data['is_active'] = True
-        if 'is_blocked' not in data:
-            data['is_blocked'] = False
-        if 'rating' not in data:
-            data['rating'] = 5.0
-
-        db_helper = Helper(**data)
         db.add(db_helper)
         db.commit()
         db.refresh(db_helper)
@@ -51,12 +53,12 @@ def create_helper(helper_data: HelperCreate, db: Session):
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Error creating helper: {str(e)}"
         )
 
 def get_profile(helper_data: HelperList, db: Session):
-    helper = db.query(Helper).filter(Helper.id == helper_data.id).first()
+    helper = db.query(Helper).filter(helper_data.id == Helper.id).first()
 
     if not helper:
         raise HTTPException(
@@ -66,25 +68,33 @@ def get_profile(helper_data: HelperList, db: Session):
     
     return helper
 
-def update_profile(helper_data: HelperUpdate, db: Session):
-    helper = db.query(Helper).filter(Helper.cpf == helper_data.cpf or Helper.email == helper_data.email).first()
+def update_profile(helper_id: int, helper_data: HelperUpdate, db: Session):
+    helper = db.query(Helper).filter(Helper.id == helper_id).first()
+    helper_meta = db.query(HelperMeta).filter(HelperMeta.helper_id == helper_id).first()
 
     if not helper:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f'Helper not found !'
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Helper not found with ID: {helper_id}!'
         )
-    
-    for field, value, in helper_data.model_dump(exclude_unset=True).items():
+
+    # Atualiza os campos enviados
+    for field, value in helper_data.model_dump(exclude_unset=True).items():
         setattr(helper, field, value)
 
+    helper_meta.updated_at = datetime.now()
     db.commit()
     db.refresh(helper)
+    db.refresh(helper_meta)
 
-    return helper
+    return {
+        **helper.__dict__,
+        "created_at": helper_meta.created_at,
+        "updated_at": helper_meta.updated_at,
+    }
 
 def delete_account(helper_id: int, db: Session):    
-    helper = db.query(Helper).filer(Helper.id == helper_id).first()
+    helper = db.query(Helper).filter(helper_id == Helper.id).first()
     if not helper:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -99,19 +109,8 @@ def start_2fa_for_helper(helper: Helper, db):
             status_code=status.HTTP_404_NOT_FOUND, 
             detail='Helper not found !'
         )
-    secret = getattr(helper, 'two_fa_secret', None)
-    if not secret: 
-        secret = generate_2fa_secret()
-        setattr(helper, 'two_fa_secret', secret)
-        db.commit()
-        db.refresh(helper)
-    code = generate_2fa_code(str(secret))
-    asyncio.run(send_2fa_code(str(helper.email), code))
 
-    return True
-
-
-def validate_2fa_for_helper(helper: Helper, code: str) -> str:
+def validate_2fa_for_helper(helper: Helper, code: str) -> bool:
     secret = getattr(helper, 'two_fa_secret', None)
     if not helper or not secret:
         return False
@@ -119,6 +118,9 @@ def validate_2fa_for_helper(helper: Helper, code: str) -> str:
 
 def forgot_password_helper(email: str, db):
     helper = db.query(Helper).filter(Helper.email == email).first()
+
+    helper_auth = HelperAuth()
+
     if not helper:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -126,7 +128,8 @@ def forgot_password_helper(email: str, db):
         )
     
     code = ''.join(random.choices(string.digits, k=6))
-    helper.reset_code = code
+    helper_auth.reset_code = code
+
     db.commit()
     db.refresh(helper)
     asyncio.run(send_2fa_code(str(helper.email), code))
@@ -134,14 +137,17 @@ def forgot_password_helper(email: str, db):
 
 def reset_password_helper(email: str, code: str, new_password: str, db):
     helper = db.query(Helper).filter(Helper.email == email).first()
-    if not helper or helper.reset_code != code:
+
+    helper_auth = HelperAuth()
+
+    if not helper or helper_auth.reset_code != code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid code'
         )
 
-    helper.hashed_password = hash_password(new_password)
-    helper.reset_code = None
+    helper_auth.hashed_password = hash_password(new_password)
+    helper_auth.reset_code = None
     db.commit()
     db.refresh(helper)
     return True

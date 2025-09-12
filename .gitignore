@@ -59,3 +59,7 @@ test-results/
 
 test.py
 business_rule.txt
+
+
+app_backup/
+drafts/

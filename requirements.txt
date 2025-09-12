@@ -1,3 +1,4 @@
+uliweb-alembic
 fastapi
 uvicorn[standard]
 sqlalchemy
@@ -16,3 +17,4 @@ httpx
 # Optional dependencies for testing
 pytest              
 pytest-asyncio
+validate-docbr==1.10.0

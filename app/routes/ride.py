@@ -18,12 +18,12 @@ from app.services.ride import (
     get_available_rides,
     accept_ride_service,
     get_rides_by_driver
-    
 )
+
 from app.schemas.ride import (
     RideList,
     RideResponse,
-    Evaluate_driver,
+    EvaluateDriver,
     RideRatingOut,
     RideQuoteResponse,
     RideResponse
@@ -34,14 +34,14 @@ router = APIRouter()
 security = HTTPBearer()
 
 
-@router.get('/quote', response_model=RideQuoteResponse)
-async def quote(
-    origin: str = Query(..., description="Endereço de partida"),
-    destination: str = Query(..., description="Endereço de destino"),
-    db: Session = Depends(get_db),
-    current_user = Depends(security)
-):
-    return await calculator_ride(origin, destination, db, current_user)
+# @router.get('/quote', response_model=RideQuoteResponse)
+# async def quote(
+#     origin: str = Query(..., description="Endereço de partida"),
+#     destination: str = Query(..., description="Endereço de destino"),
+#     db: Session = Depends(get_db),
+#     current_user = Depends(security)
+# ):
+#     return await calculator_ride(origin, destination, db, current_user)
 
 # Cliente confirma a corrida
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=RideResponse)
@@ -188,7 +188,7 @@ def finish_ride_route(
 @router.put("/{ride_id}/rate", response_model=RideResponse)
 def rate_ride_route(
     ride_id: int,
-    rating_data: Evaluate_driver,
+    rating_data: EvaluateDriver,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):

@@ -4,7 +4,7 @@ from datetime import datetime
 from app.db.database import Base
 
 class Ride(Base):
-    __tablename__ = 'rides'
+    __tablename__ = "rides"
 
     id = Column(Integer, primary_key=True, index=True)
     driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=True)  # Pode ser NULL até o driver aceitar

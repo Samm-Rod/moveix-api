@@ -8,6 +8,9 @@ from app.utils.hashing import hash_password
 from app.auth.two_f import generate_2fa_secret, send_2fa_code, generate_2fa_code, verify_2fa_code
 import random
 import string
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_user_by_email(email: str, db: Session):
     # Garante que o email é string (caso venha como EmailStr do Pydantic)
@@ -17,7 +20,8 @@ def get_user_by_email(email: str, db: Session):
         user = db.query(Driver).filter(Driver.email == email).first()
     if not user:
         user = db.query(Helper).filter(Helper.email == email).first()
-        print(f'USUÁRIO : {user}')
+
+    logger.warning(f"USER 👤: {user}")
     return user
 
 async def start_2fa_for_user(user, db: Session):
@@ -27,22 +31,24 @@ async def start_2fa_for_user(user, db: Session):
             detail="Usuário não encontrado"
         )
 
-    if not hasattr(user, 'two_fa_secret') or not user.two_fa_secret:
+    # Verifica se o secret existe no relacionamento auth
+    if not user.auth.two_fa_secret:
         secret = generate_2fa_secret()
-        user.two_fa_secret = secret
+        user.auth.two_fa_secret = secret
         db.commit()
         db.refresh(user)
     else:
-        secret = user.two_fa_secret
-    code = generate_2fa_code(secret)
+        secret = user.auth.two_fa_secret
 
+    code = generate_2fa_code(secret)
     await send_2fa_code(user.email, code)
     return True
 
+
 def validate_2fa_for_user(user, code: str) -> bool:
-    if not user or not hasattr(user, 'two_fa_secret') or not user.two_fa_secret:
+    if not user or not user.auth or not user.auth.two_fa_secret:
         return False
-    return verify_2fa_code(user.two_fa_secret, code)
+    return verify_2fa_code(user.auth.two_fa_secret, code)
 
 async def forgot_password_user(email: str, db: Session):
     user = get_user_by_email(email, db)

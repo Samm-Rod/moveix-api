@@ -111,27 +111,27 @@ class RestrictappMiddleware(BaseHTTPMiddleware):
             f"Details: {details}"
         )
     
-    def _validate_auth_token(self, auth_header: str) -> bool:
-        """Validação básica do token - MELHORADA"""
+    def _validate_auth_tokens(self, auth_header: str) -> bool:
+        """Validação básica do tokens - MELHORADA"""
         if not auth_header or not auth_header.startswith("Bearer "):
             return False
         
-        token = auth_header.replace("Bearer ", "").strip()
+        tokens = auth_header.replace("Bearer ", "").strip()
         
         # Remove Bearer duplo se existir
-        if token.startswith("Bearer "):
-            token = token.replace("Bearer ", "").strip()
+        if tokens.startswith("Bearer "):
+            tokens = tokens.replace("Bearer ", "").strip()
         
-        # Em desenvolvimento, aceitar token de teste
-        if self.environment == "development" and token == "test-token-for-swagger-development-only":
+        # Em desenvolvimento, aceitar tokens de teste
+        if self.environment == "development" and tokens == "test-tokens-for-swagger-development-only":
             return True
         
         # Validações básicas melhoradas
-        if len(token) < 10:  # Token muito curto
+        if len(tokens) < 10:  # tokens muito curto
             return False
         
         # Verificar se parece com um JWT (formato básico)
-        parts = token.split('.')
+        parts = tokens.split('.')
         if len(parts) != 3:  # JWT tem 3 partes separadas por pontos
             return False
         
@@ -168,11 +168,11 @@ class RestrictappMiddleware(BaseHTTPMiddleware):
         if self._is_protected_path(path):
             auth = request.headers.get("Authorization")
             
-            if not self._validate_auth_token(auth):
+            if not self._validate_auth_tokens(auth):
                 self._log_security_event(
                     "UNAUTHORIZED_ACCESS_ATTEMPT", 
                     request, 
-                    f"Missing or invalid auth token"
+                    f"Missing or invalid auth tokens"
                 )
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,

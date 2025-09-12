@@ -1,12 +1,9 @@
-# app/models/helpers.py
-from sqlalchemy import Column, ForeignKey, Integer, Float, Boolean, DateTime, String
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from app.db.database import Base
-from datetime import datetime
-from app.models.drivers_helpers import drivers_helpers
 
 class Helper(Base):
-    __tablename__ = 'helpers'
+    __tablename__ = "helpers"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
@@ -17,22 +14,17 @@ class Helper(Base):
     address = Column(String, nullable=True)
     postal_code = Column(String, nullable=True)
     country = Column(String, nullable=True)
-    rating = Column(Float, default=5.0, nullable=False)  # Avaliação
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=False)
 
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now, nullable=False)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+    # relacionamento com drivers
+    drivers = relationship("Driver", secondary="drivers_helpers", back_populates="helpers")
 
-    is_blocked = Column(Boolean, default=False, nullable=False)  # Bloqueado
-
-    two_fa_secret = Column(String, nullable=True)  # 2FA
-    reset_code = Column(String, nullable=True)     # Código de reset de senha
-
-    # N:N drivers and Helpers
-    drivers = relationship("Driver", secondary=drivers_helpers, back_populates="helpers")
+    # relacionamentos com sub-models
+    auth = relationship("HelperAuth", back_populates="helper", uselist=False, cascade="all, delete")
+    meta = relationship("HelperMeta", back_populates="helper", uselist=False, cascade="all, delete")
+    search_helpers = relationship("SearchHelper", back_populates="helper")
+    driver_offers = relationship("DriverOffer", back_populates="helper")
 
     def __repr__(self):
         return f"<Helper(name={self.name}, email={self.email})>"

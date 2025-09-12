@@ -1,6 +1,7 @@
 # app/services/ride.py
 
 from app.models.ride import Ride
+from app.models.request import Request
 from app.models.driver import Driver
 from app.models.client import Client
 from sqlalchemy.orm import Session
@@ -8,34 +9,10 @@ from fastapi import HTTPException, status
 from datetime import datetime
 from app.utils.config import settings
 import httpx
+from ..schemas.ride import RequestRide
 
 GOOGLE_app_KEY = settings.GOOGLE_MAPS_app_KEY
 
-"""
- -> Nova corrida;
-    - Início previsto (start_time)
-    - Local de partida e destino
-    - Status da corrida (ex: AGUARDANDO, EM_ANDAMENTO, FINALIZADA, CANCELADA)
-    - Valor estiado da corrida
-
- -> Cancelar corrida;
-    - Permite mudar o status da corrida 'CANCELADA'
-    - Avaliação(Opcional)
-
- -> Iniciar corrida
-     - Define start_time = datetime.now() e muda o status para 'EM_ANDAMENTO'
- 
- -> Finalizar corrida
-     - Define 'end_time' e muda o status da para 'FINALIZADA'
-     - Avaliação
-
- -> Calcula valor da corrida
-     + Baseado em:
-     - Distância (pode usar lib de mapas ou mockar por enquanto)
-     - Tempo estimado
-     - Tarifa base do app
-
-"""
 def confirm_ride(ride_data: dict, db: Session, current: dict):
     """
     Confirma uma corrida baseada nos dados de simulação:

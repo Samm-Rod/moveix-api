@@ -1,22 +1,13 @@
-# app/models/drivers.py
-from sqlalchemy import Column, Integer, Float, Boolean, DateTime, String
+# app/models/driver.py
+from sqlalchemy import Column, Integer, String, DateTime, Float
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
 from app.models.drivers_helpers import drivers_helpers
-
-"""
--> Cadastrar motorista:
-   - Nome completo
-   - Data de nascimento
-   - CPF
-   - E-mail
-   - Telefone
-   - Cidade e Estado
-"""
+from app.models.search_helper import SearchHelper
 
 class Driver(Base):
-    __tablename__ = 'drivers'
+    __tablename__ = "drivers"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
@@ -27,27 +18,21 @@ class Driver(Base):
     address = Column(String, nullable=True)
     postal_code = Column(String, nullable=True)
     country = Column(String, nullable=True)
-    rating = Column(Float, default=5.0, nullable=False)  # Avaliação
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=False)
 
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now, nullable=False)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
-
-    has_helpers = Column(Boolean, default=False, nullable=False)  # Tem ajudantes
-    helper_price = Column(Float, nullable=True)  # Valor do ajudante (opcional)
-    is_blocked = Column(Boolean, default=False, nullable=False)  # Bloqueado
-
-    two_fa_secret = Column(String, nullable=True)  # 2FA
-    reset_code = Column(String, nullable=True)     # Código de reset de senha
+    # relacionamentos com os novos modelos
+    auth = relationship("DriverAuth", back_populates="driver", uselist=False, cascade="all, delete")
+    meta = relationship("DriverMeta", back_populates="driver", uselist=False, cascade="all, delete")
+    services = relationship("DriverServices", back_populates="driver", uselist=False, cascade="all, delete")
+    search_helpers = relationship("SearchHelper", back_populates="driver")
+    driver_offers = relationship("DriverOffer", back_populates="driver")
 
     # app/models/driver.py
     rides = relationship("Ride", back_populates="driver", cascade="all, delete")  # se ride tiver driver_id
     vehicles = relationship("Vehicle", back_populates="driver", cascade="all, delete")
-    
-    helpers = relationship("Helper",secondary=drivers_helpers ,back_populates="drivers")
+
+    helpers = relationship("Helper", secondary=drivers_helpers, back_populates="drivers")
 
     def __repr__(self):
         return f"<Driver(name={self.name}, email={self.email})>"

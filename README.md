@@ -7,7 +7,7 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 
 - 🐍 Backend: Fastapi (Python)
 - 🐘 Banco de dados: PostgreSQL
-- 🔐 Autenticação: JWT (JSON Web Tokens)
+- 🔐 Autenticação: JWT (JSON Web tokenss)
 - 🐳 Containerização: Docker
 - ☁️ Hospedagem: Railway claud
 - 🗺️ Geolocalização: app Google Maps Platforms
@@ -30,6 +30,10 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 Fornecer uma solução escalável, segura e eficiente para o mercado de mudanças urbanas, com foco em usabilidade e automação, permitindo que usuários contratem serviços de forma rápida e confiável.
 
 ---
+
+## 🚛 Documentação das rotas/routes
+
+`Link da documetação:` [Documentação das rotas existentes](routes.md)
 
 ## 💻 Como rodar localmente
 

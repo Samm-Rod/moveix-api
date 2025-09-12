@@ -1,0 +1,12 @@
+{
+  "name": "Samuel Assis",
+  "email": "psammuel@gmail.com",
+  "phone": "61 1111-1111",
+  "cpf": "000.000.000-00",
+  "address": "Qr 317 conjunto 02 casa 08",
+  "city": "Samambaia sul DF",
+  "state": "Distrito Federal",
+  "postal_code": "00.000.000",
+  "country": "Brasil",
+  "password": "samuel123"
+}

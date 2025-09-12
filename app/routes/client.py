@@ -2,71 +2,80 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.auth.auth_service import create_access_token
+from app.auth.auth_service import create_access_tokens
+from app.auth.dependencies import get_current_user
+import logging
 from app.services.client import (
-    new_client, 
     get_update_client, 
     delete_client
 )
 from app.schemas.client import (
-    ClientCreate, 
+    ClientProfile,
     ClientUpdate,
-    ClientResponse,
     ClientDeleteResponse
 )
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
-router = APIRouter()
+
+router = APIRouter(prefix="/api/v1")
 security = HTTPBearer()
 
-@router.post('/', response_model=ClientResponse)
-def create_client(
-        create_client: ClientCreate, 
-        db: Session = Depends(get_db)
-    ):
-    client = new_client(create_client, db)
-    token = create_access_token({'sub': str(client.id)})
-    return {
-        'client_id': client.id,
-        'access_token': token,
-        'token_type': 'bearer',
-        'message': 'Driver successfully registered!'
-    }
-
-
 # Rota privada - apenas cliente autenticado pode acessar
-@router.get('/me', response_model=ClientResponse)
+@router.get('/me', response_model=ClientProfile)
 def get_me(
-    current_user = Depends(security)
+    current_user = Depends(get_current_user)
 ):
+    logger.info(f"🔍 Dados do current_user: {current_user}")
+    logger.info(f"🔑 Tipo do current_user: {type(current_user)}")
     if current_user['role'] != 'client':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
-    return {'client': current_user['user']}
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Acesso permitido apenas para clientes'
+            )
+    
+    # Return the client object directly
+    return current_user['user']
 
 
 # Rota para atualizar seus próprios dados
-@router.put('/me', response_model=ClientResponse)
+@router.patch('/me', response_model=ClientProfile)
 def update_me(
     client_data: ClientUpdate,
-    current_user = Depends(security),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print(f"current_user type: {type(current_user)}")
+    print(f"current_user content: {current_user}")
     if current_user['role'] != 'client':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
+        print(f"current_user type: {type(current_user)}")
+        print(f"current_user content: {current_user}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Acesso permitido apenas para clientes'
+            )
     updated = get_update_client(current_user['user'].id, client_data, db)
-    return {'client': updated}
+    return updated
 
 
 # Rota para deletar sua conta
 @router.delete('/me', response_model=ClientDeleteResponse)
 def delete_me(
-    current_user = Depends(security),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    logger.info('INICIANDO A REMOÇÃO DO CLIENT !')
     if current_user['role'] != 'client':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Acesso permitido apenas para clientes')
+        raise HTTPException(
+            logger.warning('DEU ERRO AQUI !'),
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail='Acesso permitido apenas para clientes'
+            )
+    
     delete_client(current_user['user'].id, db)
+    logger.info('SUCESSO !'),
     return {'message': 'Conta excluída com sucesso'}
 
 

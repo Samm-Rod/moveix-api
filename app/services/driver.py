@@ -1,5 +1,7 @@
+from app.models.driver_meta import DriverMeta
 from app.models.driver import Driver
-from app.schemas.driver import DriverCreate, DriverUpdate
+from app.models.driver_auth import DriverAuth
+from app.schemas.driver import DriverCreate, DriverUpdate, DriverBase
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status 
 from app.utils.hashing import hash_password
@@ -8,6 +10,10 @@ import random
 import string
 from datetime import datetime, date
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 """
 -> Cadastrar motorista:
@@ -23,62 +29,56 @@ import asyncio
 """
 
 def new_driver_service(driver_data: DriverCreate, db: Session):
-    existing_email = db.query(Driver).filter(Driver.email == driver_data.email).first()
-    existing_cpf = db.query(Driver).filter(Driver.cpf == driver_data.cpf).first()
+    # Checa se já existe email ou CPF
+    existing_email = db.query(Driver).filter(driver_data.email == Driver.email).first()
+    existing_cpf = db.query(Driver).filter(driver_data.cpf == Driver.cpf).first()
+
+
 
     if existing_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Driver already exists with this email"
-        )
+        raise HTTPException(status_code=400, detail="Driver already exists with this email")
     if existing_cpf:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Driver already exists with this CPF"
-        )
-    
-    
-    try:
-        data = driver_data.model_dump()
-        data['hashed_password'] = hash_password(driver_data.password)
-        data.pop('password')
-        # Remove campos que não existem no modelo Driver
-        for field in ['car_model', 'car_plate', 'car_color', 'driver_license', 'license_category']:
-            data.pop(field, None)
-        # Corrige birth_date se vier como date
-        if isinstance(data.get('birth_date'), date) and not isinstance(data.get('birth_date'), datetime):
-            data['birth_date'] = datetime.combine(data['birth_date'], datetime.min.time())
-        # Garante campos obrigatórios
-        if 'created_at' not in data:
-            data['created_at'] = datetime.now()
-        if 'updated_at' not in data:
-            data['updated_at'] = datetime.now()
-        if 'is_active' not in data:
-            data['is_active'] = True
-        if 'has_helpers' not in data:
-            data['has_helpers'] = False
-        if 'is_blocked' not in data:
-            data['is_blocked'] = False
-        if 'rating' not in data:
-            data['rating'] = 5.0
+        raise HTTPException(status_code=400, detail="Driver already exists with this CPF")
 
-        db_driver = Driver(**data)
+    try:
+        # ⃣  Cria o Driver
+        db_driver = Driver(
+            name=driver_data.name,
+            email=driver_data.email,
+            birth_date=datetime.combine(driver_data.birth_date, datetime.min.time()) if isinstance(
+                driver_data.birth_date, date) else driver_data.birth_date,
+            phone=driver_data.phone,
+            cpf=driver_data.cpf,
+            address=driver_data.address,
+            city=driver_data.city,
+            state=driver_data.state,
+            postal_code=driver_data.postal_code,
+            country=driver_data.country,
+            auth=DriverAuth(
+                hashed_password=hash_password(driver_data.password),
+                is_active=True,
+                is_blocked=False
+            ),
+            meta=DriverMeta(
+                rating=5.0
+            )
+        )
+
         db.add(db_driver)
         db.commit()
         db.refresh(db_driver)
 
         return db_driver
-    
+
     except Exception as e:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=f"Error creating driver: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Error creating driver: {str(e)}")
 
+def get_me(current_driver: Driver):
+    return [current_driver]
 
 def get_driver_by_id(driver_id: int,  db: Session):
-    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    driver = db.query(Driver).filter(driver_id == Driver.id).first()
     if not driver:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -88,7 +88,7 @@ def get_driver_by_id(driver_id: int,  db: Session):
 
 
 def update_driver_service(driver_id: int, driver_data: DriverUpdate, db: Session):
-    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    driver = db.query(Driver).filter(driver_id == Driver.id).first()
 
     if not driver:
         raise HTTPException(
@@ -96,7 +96,12 @@ def update_driver_service(driver_id: int, driver_data: DriverUpdate, db: Session
             detail="Driver not found"
         )
 
+    # Só atualiza os campos enviados no JSON
     for field, value in driver_data.model_dump(exclude_unset=True).items():
+        if value is None:
+            continue
+        if isinstance(value, str) and (value.strip() == "" or value.lower() == "string"):
+            continue
         setattr(driver, field, value)
 
     db.commit()
@@ -105,7 +110,7 @@ def update_driver_service(driver_id: int, driver_data: DriverUpdate, db: Session
 
 
 def delete_driver_service(driver_id: int, db: Session):
-    driver = db.query(Driver).filter(Driver.id == driver_id).first()
+    driver = db.query(Driver).filter(driver_id == Driver.id).first()
     if not driver:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 

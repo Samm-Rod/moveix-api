@@ -7,4 +7,3 @@ drivers_helpers = Table(
     Column('driver_id', Integer, ForeignKey('drivers.id'), primary_key=True),
     Column('helper_id', Integer, ForeignKey('helpers.id'), primary_key=True)
 )
-

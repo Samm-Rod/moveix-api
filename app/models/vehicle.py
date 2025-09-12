@@ -1,3 +1,4 @@
+# app/models/vehicle.py
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum
 from sqlalchemy.orm import relationship
 from app.db.database import Base

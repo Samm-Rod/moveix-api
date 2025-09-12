@@ -1,6 +1,19 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
+from app.enums.request_status import TripRequestStatus
+
+
+class RequestRide(BaseModel):
+    start_location: str = Field(..., min_length=1, max_length=255)
+    dropoff_location: str = Field(..., min_length=1, max_length=255)
+    volume_m3: float
+    freight_type: TripRequestStatus
+    cargo_description: str
+    is_scheduled: bool
+    requested_pickup_time: datetime  # "14:00"
+    flexible_time_window: int  # 60 min
+
 
 class RideBase(BaseModel):
     start_location: str = Field(..., min_length=1, max_length=255)
@@ -82,11 +95,15 @@ class RideDeleteResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class Evaluate_driver(BaseModel):
+class EvaluateDriver(BaseModel):
     rating: int = Field(..., ge=0, le=5, description="Avaliação de 0 a 5")
 
     model_config = ConfigDict(from_attributes=True)
 
+class EvaluateHelper(BaseModel):
+    rating: int = Field(..., ge=0, le=5, description="Avaliação de 0 a 5")
+
+    model_config = ConfigDict(from_attributes=True)
 
 class RideRatingOut(BaseModel):
     id: int
@@ -96,4 +113,3 @@ class RideRatingOut(BaseModel):
     rating: int
 
     model_config = ConfigDict(from_attributes=True)
-
