@@ -2,30 +2,54 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.ride import RideQuoteResponse
-from app.services.ride import calculator_ride
-from app.schemas.quote import DynamicQuoteResponse
+from app.schemas.freight import FreightType, FreightResponse
+from app.schemas.quote import DynamicQuoteResponse, QuoteResponse
 from app.services.dynamic_pricing import DynamicPricingService
+from app.services.freight import FreightService
 from app.auth.dependencies import get_current_user
 import logging
 
 router = APIRouter(prefix="/api/v1")
 
-@router.get('/', response_model=RideQuoteResponse)
+logger = logging.getLogger(__name__)
+
+@router.get('/', response_model=QuoteResponse)
 async def calculate_quote(
     origin: str = Query(..., description="Endereço de partida"),
     destination: str = Query(..., description="Endereço de destino"),
-    freight_type: str = Query("standard", description="Tipo de frete"),
+    freight_type: FreightType = Query(FreightType.FREIGHT, description="Tipo de frete"),
     volume_m3: float = Query(5.0, description="Volume em m³"),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """Calcular orçamento de frete"""
-    return await calculator_ride(origin, destination, db, current_user)
+    freight_service = FreightService(db)
+    distance_km, duration_minutes = await calculate_route(
+        origin_lat=0,  # TODO: Geocodificar origem
+        origin_lng=0,
+        dest_lat=0,    # TODO: Geocodificar destino
+        dest_lng=0
+    )
+    
+    pricing_service = DynamicPricingService(db)
+    pricing_result = pricing_service.calculate_dynamic_price(
+        origin_lat=0,  # TODO: Usar coordenadas reais
+        origin_lng=0,
+        distance_km=distance_km,
+        duration_minutes=duration_minutes,
+        freight_type=freight_type
+    )
+    
+    return QuoteResponse(
+        base_price=pricing_result["base_price"],
+        final_price=pricing_result["final_price"],
+        distance_km=distance_km,
+        duration_minutes=duration_minutes,
+        freight_type=freight_type,
+        volume_m3=volume_m3
+    )
 
 
-router = APIRouter(prefix="/quotes", tags=["Quotes"])
-logger = logging.getLogger(__name__)
 
 @router.get("/calculate", response_model=DynamicQuoteResponse)
 async def calculate_dynamic_quote(

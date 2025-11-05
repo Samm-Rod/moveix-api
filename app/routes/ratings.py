@@ -4,104 +4,103 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.auth.dependencies import get_current_user
-from app.schemas.ride import RideRatingOut, RideResponse, EvaluateDriver
+from app.schemas.rating import FreightRating, FreightRatingOut
+from app.services.rating import RatingService
 
-from app.services.ride import rate_ride, get_list_rate
+router = APIRouter(prefix="/api/v1/ratings")
 
-
-router = APIRouter(prefix="/api/v1")
-
-
-"""Cliente avalia o frete/motorista"""
-@router.post("/shipments/drivers/{shipment_id}", response_model=RideResponse)
-def rate_shipment(
-    shipment_id: int,
-    rating_data: EvaluateDriver,
+@router.post("/freight/{freight_id}", response_model=FreightRatingOut)
+async def rate_freight(
+    freight_id: int,
+    rating_data: FreightRating,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Cliente avalia o frete/motorista"""
+    """
+    Avalia um frete concluído.
+    Pode ser usado para avaliar motorista ou ajudantes.
+    """
     if current_user["role"] != "client":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Apenas clientes podem avaliar"
         )
 
-    ride = rate_ride(current_user['user'].id, shipment_id, rating_data.rating, db)
-    return {"ride": ride}
-
-
-"""Cliente avalia o frete/ajudantes"""
-@router.post("/shipments/helpers/{shipment_id}", response_model=RideResponse)
-def rate_shipment(
-    shipment_id: int,
-    rating_data: EvaluateDriver,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Cliente avalia o frete/ajudantes"""
-    if current_user["role"] != "client":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas clientes podem avaliar"
+    try:
+        rating_service = RatingService(db)
+        return await rating_service.rate_freight(
+            client_id=current_user['user'].id,
+            freight_id=freight_id,
+            rating_data=rating_data
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro ao avaliar frete")
 
-    ride = rate_ride(current_user['user'].id, shipment_id, rating_data.rating, db)
-    return {"ride": ride}
-
+@router.get("/freight/{freight_id}", response_model=List[FreightRatingOut])
+async def get_freight_ratings(
+    freight_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Obtém as avaliações de um frete específico
+    """
+    try:
+        rating_service = RatingService(db)
+        return await rating_service.get_freight_ratings(freight_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro ao buscar avaliações")
 
 """Motorista vê suas avaliações recebidas"""
-@router.get("/my-ratings-drivers", response_model=List[RideRatingOut])
-def get_my_ratings(
+@router.get("/my-ratings", response_model=List[FreightRatingOut])
+async def get_my_ratings(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Motorista vê suas avaliações recebidas"""
-    if current_user['role'] != 'driver':
+    """Usuário (motorista ou ajudante) vê suas avaliações recebidas"""
+    if current_user['role'] not in ['driver', 'helper']:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas motoristas"
+            detail="Acesso permitido apenas para motoristas e ajudantes"
         )
 
-    ratings = get_list_rate(current_user['user'].id, db)
-    return ratings
-
-"""Ajudante vê suas avaliações recebidas"""
-@router.get("/my-ratings-helpers", response_model=List[RideRatingOut])
-def get_my_ratings(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Ajudante vê suas avaliações recebidas"""
-    if current_user['role'] != 'helper':
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas ajudantes"
-        )
-
-    ratings = get_list_rate(current_user['user'].id, db)
-    return ratings
-
+    rating_service = RatingService(db)
+    return await rating_service.get_user_ratings(
+        user_id=current_user['user'].id,
+        user_type=current_user['role']
+    )
 
 """Ver avaliações públicas de um motorista"""
-@router.get("/driver/{driver_id}", response_model=List[RideRatingOut])
-def get_driver_public_ratings(
+@router.get("/driver/{driver_id}", response_model=List[FreightRatingOut])
+async def get_driver_public_ratings(
     driver_id: int,
     limit: int = Query(10, le=50),
     db: Session = Depends(get_db)
 ):
     """Ver avaliações públicas de um motorista"""
-    ratings = get_list_rate(driver_id, db, limit=limit, public_only=True)
-    return ratings
-
+    rating_service = RatingService(db)
+    return await rating_service.get_user_ratings(
+        user_id=driver_id,
+        user_type="driver",
+        limit=limit,
+        public_only=True
+    )
 
 """Ver avaliações públicas de um ajudante"""
-@router.get("/helper/{helper_id}", response_model=List[RideRatingOut])
-def get_helper_public_ratings(
+@router.get("/helper/{helper_id}", response_model=List[FreightRatingOut])
+async def get_helper_public_ratings(
     helper_id: int,
     limit: int = Query(10, le=50),
     db: Session = Depends(get_db)
 ):
     """Ver avaliações públicas de um ajudante"""
-    ratings = get_list_rate(helper_id, db, limit=limit, public_only=True)
-    return ratings
+    rating_service = RatingService(db)
+    return await rating_service.get_user_ratings(
+        user_id=helper_id,
+        user_type="helper",
+        limit=limit,
+        public_only=True
+    )

@@ -2,16 +2,21 @@ from enum import Enum
 
 class TripRequestStatus(Enum):
     DRAFT = "draft"                         # Rascunho (cliente ainda criando)
-    PENDING_MATCHING = "pending_matching"   # Aguardando encontrar motorista
+    PENDING = "pending"   # Aguardando encontrar motorista
     MATCHED = "matched"                     # Motorista encontrado mas não confirmou
+    MATCHING = "matching"
     CONFIRMED = "confirmed"                 # Motorista confirmou
     IN_PROGRESS = "in_progress"             # Em execução
     COMPLETED = "completed"                 # Finalizada
-    CANCELED = "canceled"                   # Cancelada
+    CANCELLED = "cancelled"                   # Cancelada
     EXPIRED = "expired"                     # Expirou sem matching
     SEARCHING = "searching"                 # Buscando
     FAILED = "failed"                       # Nenhum motorista disponível
-
+    ACCEPTED = "accepted"
+    TIMEOUT = "timeout"
+    REJECTED = "rejected"
+    FINISHED = "finished"
+    STARTING = "starting"
 
 class TypeFreight(Enum):
     CHANGE = "change" # Mudança

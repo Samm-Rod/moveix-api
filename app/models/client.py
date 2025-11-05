@@ -20,7 +20,7 @@ class Client(Base):
     auth = relationship("ClientAuth", back_populates="client", uselist=False, cascade="all, delete")
     meta = relationship("ClientMeta", back_populates="client", uselist=False, cascade="all, delete")
     rides = relationship("Ride", back_populates="client", cascade="all, delete")
-    request = relationship("Request", back_populates="client", cascade="all, delete")
+    freights = relationship("Freight", back_populates="client", cascade="all, delete")
 
     def __repr__(self):
         return f"<Client(name={self.name}, email={self.email})>"

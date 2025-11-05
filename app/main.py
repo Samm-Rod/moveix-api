@@ -3,10 +3,9 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.security import HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import (
-    client, driver, login, ride, vehicle, locations,
-    payments, helper, onboarding, shipments, quotes, trip_request, ratings,
-    matching
-
+    client, driver, login, vehicle, locations,
+    payments, helper, onboarding, quotes,
+    ratings, freight_requests, driver_components # Módulo responsável por solicitações de frete
 )
 from app.middleware.security_middleware import RestrictappMiddleware
 
@@ -93,23 +92,19 @@ def get_test_tokens():
     }
 
 # Rotas com dependência de segurança explícita
-app.include_router(client.router, prefix='/clients', tags=['Clients'])
-app.include_router(driver.router, prefix='/drivers', tags=['Drivers'])
-app.include_router(helper.router, prefix='/helpers', tags=['Helpers'])
+app.include_router(login.router, prefix="/auth", tags=["🔐 Auth"])
+app.include_router(onboarding.route, prefix="/onboarding", tags=["⚓ Onboarding"])
 
-app.include_router(ride.router, prefix='/ride', tags=['Rides'])
-app.include_router(shipments.router, prefix='/shipments', tags=['Shipments'])
-app.include_router(trip_request.router, prefix='/request', tags=['Request_Ride'])
-app.include_router(matching.route, prefix='/matching', tags=['Matching'])
+app.include_router(client.router, prefix="/clients", tags=["👤 Clients"])
+app.include_router(driver.router, prefix="/drivers", tags=["🚚 Drivers"])
+app.include_router(helper.router, prefix="/helpers", tags=["👷 Helpers"])
 
-app.include_router(ratings.router, prefix='/ratings', tags=['Ratings'])
-app.include_router(quotes.router, prefix='/quotes', tags=['Quotes'])
-app.include_router(vehicle.router, prefix='/vehicles', tags=['Vehicles'])
+app.include_router(vehicle.router, prefix="/vehicles", tags=["🛻 Vehicles"])
+app.include_router(locations.router, prefix="/maps", tags=["📍Maps"])
+app.include_router(quotes.router, prefix="/quotes", tags=["🫰 Quotes"])
 
+app.include_router(freight_requests.router, prefix="/freight-requests", tags=["👤 Freight Requests"])
+app.include_router(driver_components.router, prefix="/driver-components", tags=["🚚 Driver Components"])
 
-app.include_router(locations.router, prefix='/maps', tags=['Maps'])
-
-app.include_router(payments.router, prefix='/payments', tags=['Payments'])
-
-app.include_router(login.router, prefix='/auth', tags=['Auth'])
-app.include_router(onboarding.route, prefix="/onboarding", tags=["Onboarding"])
+app.include_router(payments.router, prefix="/payments", tags=["💰 Payments"])
+app.include_router(ratings.router, prefix="/ratings", tags=["⭐ Ratings"])

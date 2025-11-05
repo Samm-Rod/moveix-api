@@ -11,7 +11,6 @@ class DriverOffer(Base):
     __tablename__ = "driver_offers"
 
     id = Column(Integer, primary_key=True, index=True)
-    matching_id = Column(Integer, ForeignKey('matching.id'), nullable=False)
     driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=False)
     helper_id = Column(Integer, ForeignKey('helpers.id'), nullable=False)
 

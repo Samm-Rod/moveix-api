@@ -43,9 +43,6 @@ class DriverBase(BaseModel):
 # ----------------------------
 class DriverCreate(DriverBase):
     password: str = Field(..., min_length=6)
-    car_model: str
-    car_plate: str
-    car_color: str
     driver_license: str
     license_category: str
 
@@ -65,7 +62,6 @@ class DriverUpdate(BaseModel):
     rating: Optional[float] = None
     is_active: Optional[bool] = None  
     has_helpers: Optional[bool] = None
-    helper_price: Optional[float] = None
     is_blocked: Optional[bool] = None
 
     @field_validator("*", mode="before")
@@ -86,6 +82,26 @@ class DriverResponseBase(DriverBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class DriverStatusBase(BaseModel):
+    latitude: float
+    longitude: float
+    is_available: bool = True
+    is_online: bool = True
+
+class DriverStatusUpdate(DriverStatusBase):
+    pass
+
+class DriverStatusCreate(DriverStatusBase):
+    driver_id: int
+
+class DriverStatusResponse(DriverStatusBase):
+    id: int
+    driver_id: int
+    last_updated: datetime
+
+    class Config:
+        orm_mode = True
 
 class DriverResponse(BaseModel):
     id: int

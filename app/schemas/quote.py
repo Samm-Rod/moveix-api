@@ -1,48 +1,34 @@
 # app/schemas/quote.py
-
 from pydantic import BaseModel, Field
-from typing import List, Dict
-from pydantic import BaseModel
+from typing import List, Dict, Optional
 from datetime import datetime
-
-class QuoteOption(BaseModel):
-    driver_id: int = Field(..., description="ID do motorista")
-    driver_name: str = Field(..., description="Nome do motorista")
-    vehicle_model: str | None = Field(None, description="Modelo ou modelo do veículo")
-    vehicle_color: str | None = Field(None, description="Cor ou modelo do veículo")
-    vehicle_plate: str | None = Field(None, description="Placa ou modelo do veículo")
-    distance_km: float = Field(..., description="Distância em km")
-    duration_min: float = Field(..., description="Duração em minutos")
-    estimated_fare: float = Field(..., description="Valor estimado do frete")
+from app.schemas.freight import FreightType
 
 class QuoteResponse(BaseModel):
-    origin: str = Field(..., description="Endereço de partida formatado pelo Google")
-    destination: str = Field(..., description="Endereço de destino formatado pelo Google")
-    distance_km: float = Field(..., description="Distância total em km")
+    base_price: float = Field(..., description="Preço base do frete")
+    final_price: float = Field(..., description="Preço final do frete")
+    distance_km: float = Field(..., description="Distância em km")
+    duration_minutes: float = Field(..., description="Duração em minutos")
+    freight_type: FreightType = Field(..., description="Tipo do frete")
+    volume_m3: float = Field(..., description="Volume em metros cúbicos")
+    origin: Optional[str] = Field(None, description="Endereço de partida formatado")
+    destination: Optional[str] = Field(None, description="Endereço de destino formatado")
     duration_min: float = Field(..., description="Duração total em minutos")
-    options: List[QuoteOption] = Field(..., description="Lista de motoristas e preços")
-
 
 
 
 class PriceBreakdown(BaseModel):
-    demand_factor: float
-    time_factor: float
-    weather_factor: float
-    event_factor: float
-    surge_factor: float
+    demand_factor: float = Field(..., description="Fator baseado na demanda")
+    time_factor: float = Field(..., description="Fator baseado no horário")
+    weather_factor: float = Field(..., description="Fator baseado no clima")
+    event_factor: float = Field(..., description="Fator baseado em eventos")
+    surge_factor: float = Field(..., description="Fator de aumento dinâmico")
 
-class DynamicQuoteResponse(BaseModel):
-    base_price: float
-    final_price: float
-    surge_multiplier: float
-    distance_km: float
-    duration_minutes: float
-    freight_type: str
-    
-    breakdown: PriceBreakdown
-    explanation: str
-    valid_until: datetime
+class DynamicQuoteResponse(QuoteResponse):
+    surge_multiplier: float = Field(..., description="Multiplicador de preço dinâmico")
+    breakdown: PriceBreakdown = Field(..., description="Detalhamento do cálculo do preço")
+    explanation: str = Field(..., description="Explicação do preço dinâmico")
+    valid_until: datetime = Field(..., description="Validade da cotação")
     
     # Visual indicators
     is_surge_active: bool = False

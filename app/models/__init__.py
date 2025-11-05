@@ -17,10 +17,13 @@ from .search_helper import SearchHelper
 from .driver_offer import DriverOffer
 
 from .token import TokensBlacklist
-from .request import Request
+from .freight import Freight
 
 from .vehicle import Vehicle
 from .matching import Matching
+
+from .driver_offer import DriverOffer
+from .surge_zone import SurgeZone
 
 from .client import Client
 from .client_auth import ClientAuth
