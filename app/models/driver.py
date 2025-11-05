@@ -1,5 +1,5 @@
 # app/models/driver.py
-from sqlalchemy import Column, Integer, String, DateTime, Float
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from datetime import datetime
@@ -21,6 +21,7 @@ class Driver(Base):
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
 
+
     # relacionamentos com os novos modelos
     auth = relationship("DriverAuth", back_populates="driver", uselist=False, cascade="all, delete")
     meta = relationship("DriverMeta", back_populates="driver", uselist=False, cascade="all, delete")
@@ -31,6 +32,7 @@ class Driver(Base):
     # app/models/driver.py
     rides = relationship("Ride", back_populates="driver", cascade="all, delete")  # se ride tiver driver_id
     vehicles = relationship("Vehicle", back_populates="driver", cascade="all, delete")
+    freights = relationship("Freight", back_populates="driver", cascade="all, delete")
 
     helpers = relationship("Helper", secondary=drivers_helpers, back_populates="drivers")
 

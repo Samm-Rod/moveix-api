@@ -16,6 +16,7 @@ class SearchHelper(Base):
     id = Column(Integer, primary_key=True, index=True)
     driver_id = Column(Integer, ForeignKey('drivers.id'), nullable=False)
     helper_id = Column(Integer, ForeignKey('helpers.id'), nullable=False)
+    is_online = Column(Boolean, nullable=True, default=True)
 
     name = Column(String, nullable=True)
     rating = Column(Float, nullable=True)

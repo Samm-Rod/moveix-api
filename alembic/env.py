@@ -12,7 +12,8 @@ from app.db.database import Base
 #     Matching, Request, DriverOffer,
 #     SearchHelper, Driver, Client, Helper, TokensBlacklist,
 #     HelperMeta, HelperAuth, ClientMeta, ClientAuth, DriverMeta,
-#     DriverAuth, DriverServices, Location, Ride, drivers_helpers
+#     DriverAuth, DriverServices, Location, Ride, drivers_helpers,
+#     SurgeZone, Vehicle, Freight
 # )
 
 

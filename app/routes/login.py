@@ -10,6 +10,7 @@ from app.auth.auth_service import create_access_tokens, create_refresh_tokens, a
 from app.auth.dependencies import get_current_user
 from app.models.client import Client
 from app.models.driver import Driver
+from app.models.driver_meta import DriverMeta
 from app.models.helper import Helper
 
 from app.schemas.client import ClientCreate
@@ -118,6 +119,15 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         if hashed_password and verify_password(form_data.password, hashed_password):
             access_tokens = create_access_tokens(data={'sub': str(user.id), 'role': role})
             refresh_tokens = create_refresh_tokens(data={'sub': str(user.id), 'role': role})
+
+            if role == "driver":
+                driver_meta = db.query(DriverMeta).filter(DriverMeta.driver_id == user.id).first()
+                if driver_meta:
+                    driver_meta.is_online = True
+                    driver_meta.is_available = True
+                    driver_meta.last_updated = datetime.utcnow()
+                    db.commit()
+
             return {
                 'access_tokens': access_tokens,
                 'refresh_tokens': refresh_tokens,
@@ -143,6 +153,13 @@ def logout(
         )
 
     token = authorization.split(" ")[1]
+
+    if current_user["role"] == "driver":
+        driver_meta = db.query(DriverMeta).filter(DriverMeta.driver_id == current_user["user_id"]).first()
+        if driver_meta:
+            driver_meta.is_online = False
+            driver_meta.is_available = False
+            db.commit()
 
     try:
         # adiciona token na blacklist

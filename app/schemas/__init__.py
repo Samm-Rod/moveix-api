@@ -28,14 +28,9 @@ from .payments import (
 )
 
 from .quote import ( 
-    QuoteOption, QuoteResponse, DynamicQuoteResponse, PriceBreakdown
+    QuoteResponse, DynamicQuoteResponse, PriceBreakdown
 )
 
-from .ride import (
-    Ride, RideBase,RideConfirmation, RideDeleteResponse, RideList, RideOption,
-    RideQuoteResponse, RideRatingOut, RideResponse, RideUpdate,
-    RequestRide
-)
 
 from .vehicle import (
     Vehicle, VehicleBase, VehicleChoose, VehicleCreate, VehicleList, VehicleRemove, 
