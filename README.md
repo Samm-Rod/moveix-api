@@ -9,7 +9,7 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 - 🐘 Banco de dados: PostgreSQL
 - 🔐 Autenticação: JWT (JSON Web tokenss)
 - 🐳 Containerização: Docker
-- ☁️ Hospedagem: Railway claud
+- ☁️ Hospedagem: Railway cloud
 - 🗺️ Geolocalização: app Google Maps Platforms
 - 🔁 Migração de dados: Alembic
 - 🗃️ Controle de versão: GitHub
@@ -23,7 +23,7 @@ O sistema conecta clientes que precisam transportar móveis e cargas a motorista
 - 📦 Criação, visualização e gerenciamento de pedidos de frete
 - 🧾 Aceitação e finalização de corridas por motoristas
 - 💰 Sistema de pagamento integrado (a implementar)
-- 📘 app RESTful documentada com Swagger/Openapp
+- 📘 app RESTful documentada com Swagger/Openapi
 
 ## 🎯 Objetivo
 
@@ -33,7 +33,7 @@ Fornecer uma solução escalável, segura e eficiente para o mercado de mudança
 
 ## 🚛 Documentação das rotas/routes
 
-`Link da documetação:` [Documentação das rotas existentes](routes.md)
+`Link da documentação:` [Documentação das rotas existentes](routes.md)
 
 ## 💻 Como rodar localmente
 
@@ -47,7 +47,7 @@ Fornecer uma solução escalável, segura e eficiente para o mercado de mudança
    + Uvicorn: `uvicorn main.app:main --reload`<br/> 
 4. 🔍 Acesse a app via `localhost` e utilize Swagger para testes
    + Link: `http://127.0.0.1:8000/` ou `http://localhost:8000/`
-5. 🔍 Para manibular as feature vá até o Swagger do Fastapi
+5. 🔍 Para manipular as feature vá até o Swagger do Fastapi
    + Link: `http://127.0.0.1:8000/docs` ou `http://localhost:8000/docs` 
 
 ---
